@@ -2,6 +2,9 @@ package CatalystX::JobServer::Web::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
+alarm(10);
+$SIG{ALRM} = sub { Carp::cluck('here'); };
+
 BEGIN { extends 'Catalyst::Controller' }
 
 #
@@ -30,7 +33,7 @@ sub index :Path :Args(0) {
     my ( $self, $c ) = @_;
 
     # Hello World
-    $c->response->body( $c->welcome_message );
+    $c->response->body( $c->model('JobState')->running );
 }
 
 =head2 default

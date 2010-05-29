@@ -1,5 +1,6 @@
 package CatalystX::JobServer::Web;
 use Moose;
+use Coro;
 use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
@@ -40,10 +41,6 @@ __PACKAGE__->config(
 
 # Start the application
 __PACKAGE__->setup();
-
-before 'run' => sub {
-
-};
 
 =head1 NAME
 

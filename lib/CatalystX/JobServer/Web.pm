@@ -41,6 +41,9 @@ __PACKAGE__->config(
 # Start the application
 __PACKAGE__->setup();
 
+before 'run' => sub {
+
+};
 
 =head1 NAME
 

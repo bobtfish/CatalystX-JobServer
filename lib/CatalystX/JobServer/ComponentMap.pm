@@ -36,7 +36,6 @@ has components => (
     required => 1,
 );
 
-
 sub pack {
     my $self = shift;
     my %data;
@@ -50,6 +49,7 @@ sub pack {
     return \%data;
 }
 
+# FIX - Structured error which can be dealt with restfully
 sub unpack { Carp::confess("Unsupported") }
 
 1;

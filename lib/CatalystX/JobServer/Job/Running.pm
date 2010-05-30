@@ -12,6 +12,7 @@ has start_time => (
     isa => ISO8601DateTimeStr,
     is => 'ro',
     coerce => 1,
+    # FIXME - But with just time()
     default => sub { DateTime->now },
 );
 
@@ -22,3 +23,4 @@ has job => (
 );
 
 __PACKAGE__->meta->make_immutable;
+1;

@@ -99,6 +99,7 @@ method _build_mq {
     return $rf;
 }
 
+# Horrible, make these real objects somehow..
 has channels => (
     isa => HashRef[Dict[
         exchanges => ArrayRef[HashRef],
@@ -160,11 +161,11 @@ sub _build__channel_objects {
         $self->_inc_no_of_channels_registered;
         $self->_build_exchanges_for_channel($channel, $channel_data->{exchanges});
         $self->_build_queues_for_channel($channel, $channel_data->{queues});
-        warn("GOT DISPATCH TO " . $channel_data->{dispatch_to});
+        #warn("GOT DISPATCH TO " . $channel_data->{dispatch_to});
         my $dispatch_to = CatalystX::JobServer::Web->model($channel_data->{dispatch_to}); # FIXME - EVIL!!
         $channel->consume(
             on_consume => sub {
-                warn("CONSUME MESSAGE");
+                #warn("CONSUME MESSAGE");
                 my $message = shift;
                 print $message->{deliver}->method_frame->routing_key,
                     ': ', $message->{body}->payload, "\n";

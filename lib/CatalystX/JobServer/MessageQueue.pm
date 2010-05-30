@@ -28,13 +28,13 @@ method BUILD ($args) {
     async {
         $self->mq;
         $self->_channel_objects;
-        for (1..10) {
-        $self->_channel_objects->{jobs}->publish(
-             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze,
-             exchange => 'jobs',
-             routing_key => '#',
-         );
-        }
+#        for (1..10) {
+#        $self->_channel_objects->{jobs}->publish(
+#             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze,
+#             exchange => 'jobs',
+#             routing_key => '#',
+#         );
+#        }
     };
 }
 

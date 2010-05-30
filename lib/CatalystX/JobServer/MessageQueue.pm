@@ -30,7 +30,7 @@ method BUILD ($args) {
         $self->_channel_objects;
         warn("SEND MESSAGE");
         $self->_channel_objects->{jobs}->publish(
-             body => 'MESSAGE BODY',
+             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new->freeze,
              exchange => 'jobs',
              routing_key => '#',
          );
@@ -157,6 +157,7 @@ sub _build__channel_objects {
         $self->_inc_no_of_channels_registered;
         $self->_build_exchanges_for_channel($channel, $channel_data->{exchanges});
         $self->_build_queues_for_channel($channel, $channel_data->{queues});
+        warn("GOT DISPATCH TO " . $channel_data->{dispatch_to});
         my $dispatch_to = CatalystX::JobServer::Web->model($channel_data->{dispatch_to}); # FIXME - EVIL!!
         $channel->consume(
             on_consume => sub {

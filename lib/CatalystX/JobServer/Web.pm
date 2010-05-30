@@ -71,7 +71,7 @@ __PACKAGE__->config(
                             }
                         },
                     ],
-                    dispatch_to => 'Model::JobState',
+                    dispatch_to => 'JobState',
                 }
             }
         }

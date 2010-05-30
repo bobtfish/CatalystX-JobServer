@@ -3,7 +3,18 @@ use Moose;
 use MooseX::Types::Moose qw/ Int ArrayRef Str /;
 use AnyEvent::Util qw/ fork_call /;
 use Moose::Autobox;
+use MooseX::Types::Set::Object;
+use MooseX::Storage::Engine;
 use namespace::autoclean;
+
+MooseX::Storage::Engine->add_custom_type_handler(
+    'Set::Object' =>
+        expand => sub {},
+        collapse => sub {
+            my @members = $_[0]->members;
+            MooseX::Storage::Engine->find_type_handler( ArrayRef )->{collapse}->( \@members );
+        },
+);
 
 has num_forked_workers => (
     is => 'ro',
@@ -14,6 +25,18 @@ has num_forked_workers => (
         _add_forked_worker    => 'inc',
         _delete_forked_worker => 'dec',
     }
+);
+
+has jobs_running => (
+    isa      => "Set::Object",
+    default => sub { Set::Object->new },
+    coerce => 1,
+    handles  => {
+        jobs_running => "members",
+        _add_running => "insert",
+        _remove_running => "remove",
+    },
+    traits => ['Serialize'],
 );
 
 has jobs_registered => (
@@ -33,12 +56,13 @@ sub BUILD {
 sub run_job {
     my ($self, $job) = @_;
     $self->_add_forked_worker;
-
+    $self->_add_running($job);
     fork_call {
         $job->run;
     }
     sub {
-        $self->delete_forked_worker;
+        $self->_remove_running($job);
+        $self->_delete_forked_worker;
         if (scalar @_) {
             warn("Job ran, returned " . shift);
         }

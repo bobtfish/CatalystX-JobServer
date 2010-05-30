@@ -27,8 +27,13 @@ has mq => (
 method BUILD ($args) {
     async {
         $self->mq;
-        ::Dwarn $args->{channels};
         $self->_channel_objects;
+        warn("SEND MESSAGE");
+        $self->_channel_objects->{jobs}->publish(
+             body => 'MESSAGE BODY',
+             exchange => 'jobs',
+             routing_key => '#',
+         );
     };
 }
 
@@ -71,7 +76,6 @@ has verbose => (
 method _build_mq {
     my $rf;
     try {
-        Carp::cluck("START RABBITFOOT");
         $rf = RabbitFoot->new(
             verbose => $self->verbose,
         )->load_xml_spec(
@@ -98,7 +102,7 @@ has channels => (
     isa => HashRef[Dict[
         exchanges => ArrayRef[HashRef],
         queues => ArrayRef[Dict[
-            name => NonEmptySimpleStr,
+            queue => NonEmptySimpleStr,
             durable => Bool,
             bind => Dict[
                 exchange => NonEmptySimpleStr,
@@ -156,6 +160,7 @@ sub _build__channel_objects {
         my $dispatch_to = CatalystX::JobServer::Web->model($channel_data->{dispatch_to}); # FIXME - EVIL!!
         $channel->consume(
             on_consume => sub {
+                warn("CONSUME MESSAGE");
                 my $message = shift;
                 print $message->{deliver}->method_frame->routing_key,
                     ': ', $message->{body}->payload, "\n";
@@ -185,10 +190,11 @@ sub _build_exchanges_for_channel {
 sub _build_queues_for_channel {
     my ($self, $channel, $queues) = @_;
     foreach my $queue ( @$queues ) {
-        my $binding = delete($queue->{binding});
+        my $binding = delete $queue->{bind};
         my $queue_frame = $channel->declare_queue(
            %$queue
        )->method_frame;
+       $queue->{bind} = $binding; # Eww.
        $self->_inc_no_of_queues_registered;
        $self->_build_binding_for_queue($channel, $queue_frame->queue, $binding);
     }
@@ -196,9 +202,9 @@ sub _build_queues_for_channel {
 
 sub _build_binding_for_queue {
     my ($self, $channel, $queue_name, $binding) = @_;
+    $binding->{queue} = $queue_name;
     my $bind_frame = $channel->bind_queue(
        %$binding,
-       queue => $queue_name,
     );
     die "Bad bind to queue $queue_name " . Dumper($bind_frame)
             unless blessed $bind_frame->method_frame and $bind_frame->method_frame->isa('Net::AMQP::Protocol::Queue::BindOk');

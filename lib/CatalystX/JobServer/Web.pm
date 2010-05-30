@@ -63,7 +63,7 @@ __PACKAGE__->config(
                     ],
                     queues => [
                         {
-                            name => 'jobs_queue',
+                            queue => 'jobs_queue',
                             durable => 1,
                             bind => {
                                 exchange => 'jobs',

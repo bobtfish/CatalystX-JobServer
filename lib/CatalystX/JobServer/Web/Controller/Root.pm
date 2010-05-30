@@ -33,23 +33,6 @@ sub index :Chained('base') PathPart('') Args(0) {
     $c->res->body($c->model('ComponentMap')->freeze(1));
 }
 
-sub list : Chained('base') Args(0) {
-    my ($self, $c) = @_;
-    my %components;
-    foreach my $component_name (keys %{$c->components}) {
-        my $component = $c->components->{$component_name};
-        warn("Working for $component_name $component fr " . $component->can('freeze') . ' cl ' . $component->can('clone'));
-        if ($component->can('freeze') && $component->can('clone')) {
-            # Check Catalyst::Component::InstancePerContext
-            $components{$component_name} = $component->clone->freeze;
-        }
-    }
-
-    $c->response->body(
-        join("\n", map { '<h1>' . $_ . '</h1>', $components{$_} } keys %components)
-    );
-}
-
 =head2 default
 
 Standard 404 error page

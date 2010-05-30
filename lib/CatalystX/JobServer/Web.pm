@@ -9,6 +9,7 @@ use Catalyst::Runtime 5.80;
 
 use Catalyst qw/
     +CatalystX::JobServer::Web::Plugin::ModelsFromConfig
+    +CatalystX::JobServer::Web::Plugin::AddRolesToComponents
     ConfigLoader
     Static::Simple
 /;

@@ -26,23 +26,11 @@ sub COMPONENT {
     if ($self->{traits}) {
         @traits_from_config = $self->_resolve_traits(@{$self->{traits}});
     }
-    my @roles = (@traits_from_config,
-        qw/
-            MooseX::Clone
-            MooseX::Storage::Basic
-            CatalystX::JobServer::Role::Storage
-            MooseX::Storage::Format::JSON
-            Log::Message::Structured::Stringify::AsJSON
-            Log::Message::Structured
-        /);
-    use Data::Dumper;
-    local $Data::Dumper::Maxdepth = 2;
-    warn Dumper \@roles;
 
-    warn("Applying roles to instance $instance");
-    Moose::Util::apply_all_roles($instance, @roles);
-    warn("Got back $instance and " . $instance->can('stringify'));
-    $instance->_set_catalyst_component_name($class);
+    if (@traits_from_config) {
+        warn("Applying extra configured roles " . join(', ', @traits_from_config) . " to instance $instance");
+        Moose::Util::apply_all_roles($instance, @traits_from_config);
+    }
     return $instance;
 };
 

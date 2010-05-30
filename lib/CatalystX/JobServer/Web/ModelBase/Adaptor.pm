@@ -9,8 +9,14 @@ use namespace::autoclean;
 extends 'Catalyst::Model::Adaptor::Base';
 with 'CatalystX::Component::Traits' => { excludes => 'COMPONENT' };
 
+sub mangle_arguments {
+    my ($self, $args) = @_;
+    return {catalyst_component_name => $self->catalyst_component_name, %$args};
+}
+
 sub COMPONENT {
     my ($class, $app, @rest) = @_;
+    Class::MOP::load_class('CatalystX::JobServer::Role::Storage');
     my $self = $class->next::method($app, @rest);
 
     $self->_load_adapted_class;
@@ -20,19 +26,23 @@ sub COMPONENT {
     if ($self->{traits}) {
         @traits_from_config = $self->_resolve_traits(@{$self->{traits}});
     }
-    my $role = Moose::Meta::Role::Composite->new(
-        roles => [
-            @traits_from_config,
-            map { $_->meta } qw/
-                MooseX::Clone
-                Log::Message::Structured
-                Log::Message::Structured::Stringify::AsJSON
-            /,
-        ]
-    );
+    my @roles = (@traits_from_config,
+        qw/
+            MooseX::Clone
+            MooseX::Storage::Basic
+            CatalystX::JobServer::Role::Storage
+            MooseX::Storage::Format::JSON
+            Log::Message::Structured::Stringify::AsJSON
+            Log::Message::Structured
+        /);
+    use Data::Dumper;
+    local $Data::Dumper::Maxdepth = 2;
+    warn Dumper \@roles;
 
-    $role->apply($instance);
-
+    warn("Applying roles to instance $instance");
+    Moose::Util::apply_all_roles($instance, @roles);
+    warn("Got back $instance and " . $instance->can('stringify'));
+    $instance->_set_catalyst_component_name($class);
     return $instance;
 };
 

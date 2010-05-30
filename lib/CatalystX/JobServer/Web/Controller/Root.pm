@@ -34,7 +34,7 @@ sub index :Chained('base') PathPart('') Args(0) {
     my %components;
     foreach my $component_name (keys %{$c->components}) {
         my $component = $c->components->{$component_name};
-        warn("Working for $component_name $component " . $component->can('freeze') . ' ' . $component->can('clone'));
+        warn("Working for $component_name $component fr " . $component->can('freeze') . ' cl ' . $component->can('clone'));
         if ($component->can('freeze') && $component->can('clone')) {
             $components{$component_name} = $component->clone->freeze;
         }

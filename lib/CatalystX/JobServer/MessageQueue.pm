@@ -24,12 +24,14 @@ has host => (
     isa => NonEmptySimpleStr,
     is => 'ro',
     default => 'localhost',
+    traits => [qw/ Serialize /],
 );
 
 has port => (
     isa => Int,
     is => 'ro',
     default => '5672',
+    traits => [qw/ Serialize /],
 );
 
 foreach my $name (qw/ user pass /) {
@@ -44,12 +46,14 @@ has vhost => (
     isa => NonEmptySimpleStr,
     is => 'ro',
     default => '/',
+    traits => [qw/ Serialize /],
 );
 
 has verbose => (
     isa => Bool,
     is => 'ro',
     default => 0,
+    traits => [qw/ Serialize /],
 );
 
 method _build_mq {

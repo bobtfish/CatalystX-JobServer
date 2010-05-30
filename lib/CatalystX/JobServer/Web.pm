@@ -2,7 +2,9 @@ package CatalystX::JobServer::Web;
 use Moose;
 use Coro;
 use AnyEvent;
-use MooseX::Storage::Meta::Attribute::Trait::DoNotSerialize;
+use MooseX::Types::Moose qw/ Str /;
+use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
+use Sys::Hostname qw/ hostname /;
 use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
@@ -15,6 +17,28 @@ use Catalyst qw/
 /;
 
 extends 'Catalyst';
+
+has instance_queue_name => (
+    isa => NonEmptySimpleStr,
+    is => 'ro',
+    lazy => 1,
+    default => sub { 'cxjobserver_' . hostname() . '_' . $$ },
+);
+
+has instance_uri_path => (
+    isa => NonEmptySimpleStr,
+    is => 'ro',
+    # FIXME
+    lazy => 1,
+    default => sub { 'localhost:5000' }
+);
+
+has instance_routing_key => (
+    isa => Str,
+    is => 'ro',
+    lazy => 1,
+    default => '',
+);
 
 our $VERSION = '0.01';
 $VERSION = eval $VERSION;
@@ -30,6 +54,9 @@ __PACKAGE__->config(
     },
     'Model::JobState' => {
         class => 'CatalystX::JobServer::JobState',
+        jobs_registered => [
+            'CatalystX::JobServer::Job::Test::RunForThirtySeconds',
+        ]
     }
 );
 

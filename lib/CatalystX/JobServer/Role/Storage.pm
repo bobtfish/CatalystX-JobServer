@@ -1,11 +1,18 @@
 package CatalystX::JobServer::Role::Storage;
 use Moose::Role;
+use JSON::XS;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
+use namespace::autoclean;
 
 has catalyst_component_name => (
     is => 'ro',
     writer => '_set_catalyst_component_name',
 );
+
+sub freeze {
+    my $self = shift;
+    JSON::XS->new->pretty(shift)->encode($self->pack);
+}
 
 around 'pack' => sub {
     my ($orig, $self, %args) = @_;

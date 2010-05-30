@@ -30,12 +30,17 @@ sub base : Chained('/') PathPart('') CaptureArgs(0) {}
 
 sub index :Chained('base') PathPart('') Args(0) {
     my ( $self, $c ) = @_;
+    $c->res->body($c->model('ComponentMap')->freeze(1));
+}
 
+sub list : Chained('base') Args(0) {
+    my ($self, $c) = @_;
     my %components;
     foreach my $component_name (keys %{$c->components}) {
         my $component = $c->components->{$component_name};
         warn("Working for $component_name $component fr " . $component->can('freeze') . ' cl ' . $component->can('clone'));
         if ($component->can('freeze') && $component->can('clone')) {
+            # Check Catalyst::Component::InstancePerContext
             $components{$component_name} = $component->clone->freeze;
         }
     }
@@ -53,6 +58,11 @@ Standard 404 error page
 
 sub default : Chained('base') Args {
     my ( $self, $c ) = @_;
+    $c->detach('error404');
+}
+
+sub error404 : Action {
+    my ($self, $c) = @_;
     $c->response->body( 'Page not found' );
     $c->response->status(404);
 }
@@ -65,6 +75,11 @@ Attempt to render a view, if needed.
 
 sub end : Action {
     my ($self, $c) = @_;
+    if ($c->stash->{data}) {
+        if (blessed $c->stash->{data}) {
+            $c->res->body($c->stash->{data}->freeze(1));
+        }
+    }
     $c->res->body('No output :(') unless $c->res->body;
 }
 

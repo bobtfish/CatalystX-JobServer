@@ -63,7 +63,10 @@ Attempt to render a view, if needed.
 
 =cut
 
-sub end : ActionClass('RenderView') {}
+sub end : Action {
+    my ($self, $c) = @_;
+    $c->res->body('No output :(') unless $c->res->body;
+}
 
 =head1 AUTHOR
 

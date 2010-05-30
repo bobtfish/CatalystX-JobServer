@@ -27,6 +27,9 @@ __PACKAGE__->config(
     'Model::MessageQueue' => {
         class => 'CatalystX::JobServer::MessageQueue',
     },
+    'Model::JobState' => {
+        class => 'CatalystX::JobServer::JobState',
+    }
 );
 
 __PACKAGE__->setup();

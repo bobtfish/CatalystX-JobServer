@@ -17,7 +17,8 @@ sub _setup_dynamic_models {
     my $config = $app->config || {};
 
     foreach my $model_name ( grep { /^$model_prefix/ } keys %$config ) {
-        $app->_setup_dynamic_model( $model_name, $config->{$model_name});
+        $app->_setup_dynamic_model( $model_name, $config->{$model_name})
+            unless $app->component($model_name);
     }
 }
 

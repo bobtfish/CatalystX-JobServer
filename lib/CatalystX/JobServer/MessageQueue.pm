@@ -28,12 +28,13 @@ method BUILD ($args) {
     async {
         $self->mq;
         $self->_channel_objects;
-        warn("SEND MESSAGE");
+        for (1..10) {
         $self->_channel_objects->{jobs}->publish(
-             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new->freeze,
+             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze,
              exchange => 'jobs',
              routing_key => '#',
          );
+        }
     };
 }
 
@@ -110,6 +111,8 @@ has channels => (
             ],
         ]],
         dispatch_to => NonEmptySimpleStr,
+        results_exchange => NonEmptySimpleStr,
+        results_routing_key => Str,
     ]],
     is => 'ro',
     required => 1,
@@ -169,7 +172,12 @@ sub _build__channel_objects {
                 my $data = decode_json($message->{body}->payload);
                 my $class = $data->{__CLASS__}; # FIXME - Deal with bad class.
                 my $job = $class->unpack($data);
-                $dispatch_to->run_job($job);
+                $dispatch_to->run_job($job, $channel_data->{results_exchange}
+                    ? sub { $channel->publish(
+                     body => shift,
+                     exchange => $channel_data->{results_exchange},
+                     routing_key => $channel_data->{results_routing_key} . ':' . $class,
+                 )} : sub { warn shift; });
             },
         );
     }

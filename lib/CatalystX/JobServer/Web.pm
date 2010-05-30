@@ -46,9 +46,6 @@ $VERSION = eval $VERSION;
 __PACKAGE__->config(
     name => 'CatalystX::JobServer::Web',
     disable_component_resolution_regex_fallback => 1,
-    'CatalystX::DynamicComponent::ModelsFromConfig' => {
-        include => '^(MessageQueue|JobState)$',
-    },
     'Model::MessageQueue' => {
         class => 'CatalystX::JobServer::MessageQueue',
         args => {
@@ -72,6 +69,8 @@ __PACKAGE__->config(
                         },
                     ],
                     dispatch_to => 'JobState',
+                    results_exchange => 'firehose',
+                    results_routing_key => '',
                 }
             }
         }

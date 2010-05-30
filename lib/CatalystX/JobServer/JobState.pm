@@ -5,6 +5,7 @@ use AnyEvent::Util qw/ fork_call /;
 use Moose::Autobox;
 use MooseX::Types::Set::Object;
 use MooseX::Storage::Engine;
+use aliased 'CatalystX::JobServer::Job::Running';
 use namespace::autoclean;
 
 MooseX::Storage::Engine->add_custom_type_handler(
@@ -55,10 +56,11 @@ sub BUILD {
 
 sub run_job {
     my ($self, $job) = @_;
+    $job = Running->new(job => $job);
     $self->_add_forked_worker;
     $self->_add_running($job);
     fork_call {
-        $job->run;
+        $job->job->run;
     }
     sub {
         $self->_remove_running($job);

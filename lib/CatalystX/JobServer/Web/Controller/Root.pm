@@ -2,9 +2,6 @@ package CatalystX::JobServer::Web::Controller::Root;
 use Moose;
 use namespace::autoclean;
 
-alarm(10);
-$SIG{ALRM} = sub { Carp::cluck('here'); };
-
 BEGIN { extends 'Catalyst::Controller' }
 
 #
@@ -29,11 +26,23 @@ The root page (/)
 
 =cut
 
-sub index :Path :Args(0) {
+sub base : Chained('/') PathPart('') CaptureArgs(0) {}
+
+sub index :Chained('base') PathPart('') Args(0) {
     my ( $self, $c ) = @_;
 
-    # Hello World
-    $c->response->body( $c->model('JobState')->running );
+    my %components;
+    foreach my $component_name (keys %{$c->components}) {
+        my $component = $c->components->{$component_name};
+        warn("Working for $component_name $component " . $component->can('freeze') . ' ' . $component->can('clone'));
+        if ($component->can('freeze') && $component->can('clone')) {
+            $components{$component_name} = $component->clone->freeze;
+        }
+    }
+
+    $c->response->body(
+        join("\n", map { '<h1>' . $_ . '</h1>', $components{$_} } keys %components)
+    );
 }
 
 =head2 default
@@ -42,7 +51,7 @@ Standard 404 error page
 
 =cut
 
-sub default :Path {
+sub default : Chained('base') Args {
     my ( $self, $c ) = @_;
     $c->response->body( 'Page not found' );
     $c->response->status(404);

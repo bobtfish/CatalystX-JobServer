@@ -1,11 +1,15 @@
 package CatalystX::JobServer::MessageQueue;
 use Moose;
 use Method::Signatures::Simple;
-use MooseX::Types::Moose qw/ NonEmptySimpleStr Int Bool /;
+use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
+use MooseX::Types::Moose qw/ Int Bool /;
+use aliased 'Net::RabbitFoot';
+use Try::Tiny;
 use namespace::autoclean;
 
 has mq => (
-    isa => 'Net::RabbitFot',
+    is => 'ro',
+    isa => RabbitFoot,
     lazy_build => 1,
     handles => [qw/
         open_channel
@@ -48,15 +52,21 @@ has verbose => (
     default => 0,
 );
 
-method _build__mq {
-    my $rf = Net::RabbitFoot->new(
-        verbose => $self->verbose,
-    )->load_xml_spec(
-        Net::RabbitFoot::default_amqp_spec(),
-    )->connect(
-       map { $_ => $self->$_ } qw/ host port user pass vhost /
-    );
-   return $rf;
+method _build_mq {
+    my $rf;
+    try {
+        $rf = RabbitFoot->new(
+            verbose => $self->verbose,
+        )->load_xml_spec(
+            Net::RabbitFoot::default_amqp_spec(),
+        )->connect(
+           map { $_ => $self->$_ } qw/ host port user pass vhost /
+        );
+    }
+    catch {
+        die(sprintf("Could not connect to Rabbit MQ server on %s:%s - error $_\n", $self->host, $self->port));
+    };
+    return $rf;
 }
 
 __PACKAGE__->meta->make_immutable;

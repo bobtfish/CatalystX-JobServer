@@ -6,19 +6,9 @@ use Test::Exception;
 use Moose::Util qw/apply_all_roles/;
 
 {
-    package BaseClass;
-    use Moose;
-
-    BEGIN { extends qw/Catalyst::Component MooseX::MethodAttributes::Inheritable/; }
-
-    use MooseX::MethodAttributes;
-    no Moose;
-}
-
-{
     package AClass;
     use Moose;
-    extends 'BaseClass';
+    use MooseX::MethodAttributes;
     no Moose;
 }
 

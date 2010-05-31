@@ -28,6 +28,7 @@ requires 'MooseX::Storage';
 requires 'MooseX::Types::Structured';
 requires 'MooseX::Types::Common::String';
 requires 'MooseX::Types';
+requires 'MooseX::MethodAttributes' => '0.22';
 requires 'Catalyst::Model::Adaptor';
 requires 'Catalyst::Component::InstancePerContext';
 requires 'CatalystX::Component::Traits';

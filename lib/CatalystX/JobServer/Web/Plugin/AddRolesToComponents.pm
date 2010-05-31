@@ -22,11 +22,7 @@ after 'setup_components' => sub {
 
 sub _apply_instance_roles {
     my ($ctx, $component, $component_name) = @_;
-    #warn("Applying roles to instance $component");
-    foreach my $role ( @roles) {
-        Moose::Util::apply_all_roles($component, $role);
-    }
-    #warn("Got back $component and " . $component->can('stringify'));
+    Moose::Util::apply_all_roles($component, @roles);
     $component->_set_catalyst_component_name($component_name);
 }
 

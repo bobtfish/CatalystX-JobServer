@@ -6,9 +6,18 @@ use Test::Exception;
 use Moose::Util qw/apply_all_roles/;
 
 {
-    package AClass;
+    package BaseClass;
     use Moose;
     use MooseX::MethodAttributes;
+    no Moose;
+}
+
+{
+    package AClass;
+    use Moose;
+    BEGIN { extends 'BaseClass' }
+    sub foo : Bar {}
+
     no Moose;
 }
 
@@ -36,18 +45,39 @@ use Moose::Util qw/apply_all_roles/;
 {
     package BClass;
     use Moose;
-    extends 'AClass';
+    BEGIN { extends 'AClass' };
+
+    sub moo : Quux {}
+
     ::lives_ok { with qw/Role1 Role2/ };
+}
+
+{
+    package CClass;
+    use Moose;
+    BEGIN { extends 'AClass' };
+
+    sub moo : Quux {}
 }
 
 #use CatalystX::JobServer::Web::Controller::Root;
 #my $i = CatalystX::JobServer::Web::Controller::Root->new;
-foreach my $i (AClass->new, BClass->new) {
+my $c = CClass->new;
+lives_ok { apply_all_roles($c, qw/Role1 Role2/) };
+
+foreach my $i (BClass->new, $c) {
     $Role1::called = $Role2::called = 0;
-    lives_ok { apply_all_roles($i, qw/Role1 Role2/) };
     can_ok $i, 'pack' and $i->pack;
     is $Role1::called, 1;
     is $Role2::called, 1;
+    is_deeply(
+        $i->meta->find_method_by_name('foo')->attributes,
+        [(q{Bar})],
+    );
+    is_deeply(
+        $i->meta->find_method_by_name('moo')->attributes,
+        [(q{Quux})],
+    );
 }
 
 done_testing;

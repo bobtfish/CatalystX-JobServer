@@ -1,13 +1,11 @@
 #!/usr/bin/env perl
-# IMPORTANT: if you delete this file your app will not work as
-# expected.  You have been warned.
+use strict;
 use inc::Module::Install;
-use Module::Install::Catalyst; # Complain loudly if you don't have
-                               # Catalyst::Devel installed or haven't said
-                               # 'make dist' to create a standalone tarball.
+use Module::Install::Catalyst;
+use Module::Install::AuthorRequires;
 
-name 'CatalystX-JobServer-Web';
-all_from 'lib/CatalystX/JobServer/Web.pm';
+name 'CatalystX-JobServer';
+all_from 'lib/CatalystX/JobServer.pm';
 
 requires 'Catalyst::Runtime' => '5.80022';
 requires 'Catalyst::Plugin::ConfigLoader';
@@ -45,6 +43,11 @@ author_requires 'Test::Pod' => '1.14';
 author_requires 'Test::Pod::Coverage' => '1.04';
 author_tests 't/author';
 catalyst;
+
+if ($Module::Install::AUTHOR) {
+    system("pod2text lib/CatalystX/Jobserver.pm > README")
+        and die $!;
+}
 
 install_script glob('script/*.pl');
 auto_install;

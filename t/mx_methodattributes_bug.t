@@ -60,8 +60,6 @@ use Moose::Util qw/apply_all_roles/;
     sub moo : Quux {}
 }
 
-#use CatalystX::JobServer::Web::Controller::Root;
-#my $i = CatalystX::JobServer::Web::Controller::Root->new;
 my $c = CClass->new;
 lives_ok { apply_all_roles($c, qw/Role1 Role2/) };
 

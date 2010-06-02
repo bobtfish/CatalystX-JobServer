@@ -1,1 +1,13 @@
-Run script/catalystx_jobserver_web_server.pl to test the application.
+NAME
+    CatalystX::JobServer
+
+SEE ALSO
+    CatalystX::JobServer::Web, Net::RabbitFoot.
+
+AUTHOR
+    Tomas Doran
+
+LICENSE
+    This library is free software. You can redistribute it and/or modify it
+    under the same terms as Perl itself.
+

@@ -40,6 +40,10 @@ requires 'aliased';
 requires 'Sys::Hostname';
 
 test_requires 'Test::More' => '0.88';
+
+author_requires 'Test::Pod' => '1.14';
+author_requires 'Test::Pod::Coverage' => '1.04';
+author_tests 't/author';
 catalyst;
 
 install_script glob('script/*.pl');

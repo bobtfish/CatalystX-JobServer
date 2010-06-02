@@ -11,7 +11,7 @@ has catalyst_component_name => (
 
 sub freeze {
     my $self = shift;
-    JSON::XS->new->pretty(shift)->encode($self->pack);
+    JSON::XS->new->pretty(shift||0)->encode($self->pack);
 }
 
 around 'pack' => sub {

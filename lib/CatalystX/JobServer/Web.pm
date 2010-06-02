@@ -40,9 +40,6 @@ has instance_routing_key => (
     default => '',
 );
 
-our $VERSION = '0.01';
-$VERSION = eval $VERSION;
-
 __PACKAGE__->config(
     name => 'CatalystX::JobServer::Web',
     disable_component_resolution_regex_fallback => 1,
@@ -87,6 +84,7 @@ __PACKAGE__->config(
 
 __PACKAGE__->setup();
 __PACKAGE__->setup_engine('PSGI');
+
 =head1 NAME
 
 CatalystX::JobServer::Web - Catalyst based application

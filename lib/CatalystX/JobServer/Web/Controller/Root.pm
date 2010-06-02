@@ -4,10 +4,6 @@ use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-#
-# Sets the actions in this controller to be registered with no prefix
-# so they function identically to actions created in MyApp.pm
-#
 __PACKAGE__->config(namespace => '');
 
 =head1 NAME
@@ -30,6 +26,7 @@ sub base : Chained('/') PathPart('') CaptureArgs(0) {}
 
 sub index :Chained('base') PathPart('') Args(0) {
     my ( $self, $c ) = @_;
+    #$c->res->header('Content-Type', 'application/json');
     $c->res->body($c->model('ComponentMap')->freeze(1));
 }
 
@@ -60,6 +57,7 @@ sub end : Action {
     my ($self, $c) = @_;
     if ($c->stash->{data}) {
         if (blessed $c->stash->{data}) {
+            #$c->res->header('Content-Type', 'application/json');
             $c->res->body($c->stash->{data}->freeze(1));
         }
     }

@@ -3,14 +3,17 @@ use Moose;
 use Method::Signatures::Simple;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::Moose qw/ Int Bool HashRef ArrayRef Str /;
-use aliased 'Net::RabbitFoot';
 use Try::Tiny;
 use MooseX::Types::Structured qw/ Dict /;
 use JSON qw/ decode_json /;
+use AnyEvent;
 use Coro;
+use aliased 'Net::RabbitFoot';
 use Data::Dumper;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
 use namespace::autoclean;
+
+our $VERBOSE = 0;
 
 has mq => (
     is => 'ro',
@@ -25,17 +28,25 @@ has mq => (
 );
 
 method BUILD ($args) {
+    my $cv = AnyEvent->condvar;
     async {
-        $self->mq;
-        $self->_channel_objects;
-#        for (1..10) {
-#        $self->_channel_objects->{jobs}->publish(
-#             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze,
-#             exchange => 'jobs',
-#             routing_key => '#',
-#         );
-#        }
+        try {
+            $self->mq;
+            $self->_channel_objects;
+    #        for (1..10) {
+    #        $self->_channel_objects->{jobs}->publish(
+    #             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze,
+    #             exchange => 'jobs',
+    #             routing_key => '#',
+    #         );
+    #        }
+        }
+        catch {
+            $cv->croak($_);
+        };
+        $cv->send;
     };
+    $cv->recv;
 }
 
 has host => (
@@ -67,21 +78,16 @@ has vhost => (
     traits => [qw/ Serialize /],
 );
 
-has verbose => (
-    isa => Bool,
-    is => 'ro',
-    default => 0,
-    traits => [qw/ Serialize /],
+my $rf = RabbitFoot->new(
+    verbose => $VERBOSE,
+)->load_xml_spec(
+    Net::RabbitFoot::default_amqp_spec(),
 );
 
 method _build_mq {
-    my $rf;
+    my $conn;
     try {
-        $rf = RabbitFoot->new(
-            verbose => $self->verbose,
-        )->load_xml_spec(
-            Net::RabbitFoot::default_amqp_spec(),
-        )->connect(
+        $conn = $rf->connect(
            on_close => sub {
                  warn(sprintf("RabbitMQ connection to %s:%s closed!\n", $self->host, $self->port));
                  $self->_clear_mq;
@@ -96,7 +102,7 @@ method _build_mq {
     catch {
         die(sprintf("Could not connect to Rabbit MQ server on %s:%s - error $_\n", $self->host, $self->port));
     };
-    return $rf;
+    return $conn;
 }
 
 # Horrible, make these real objects somehow..
@@ -144,7 +150,6 @@ foreach my $name (qw/ channels exchanges queues bindings /) {
 }
 after '_clear_channel_objects' => sub {
     my $self = shift;
-    warn("STOP RABBITFOOT");
     $self->_reset_no_of_channels_registered;
     $self->_reset_no_of_exchanges_registered;
     $self->_reset_no_of_queues_registered;
@@ -162,7 +167,9 @@ sub _build__channel_objects {
         $self->_build_exchanges_for_channel($channel, $channel_data->{exchanges});
         $self->_build_queues_for_channel($channel, $channel_data->{queues});
         #warn("GOT DISPATCH TO " . $channel_data->{dispatch_to});
-        my $dispatch_to = CatalystX::JobServer::Web->model($channel_data->{dispatch_to}); # FIXME - EVIL!!
+        my $code = CatalystX::JobServer::Web->can('model');
+        next unless $code;
+        my $dispatch_to = $code->('CatalystX::JobServer::Web', $channel_data->{dispatch_to}); # FIXME - EVIL!!
         $channel->consume(
             on_consume => sub {
                 #warn("CONSUME MESSAGE");
@@ -219,6 +226,13 @@ sub _build_binding_for_queue {
     die "Bad bind to queue $queue_name " . Dumper($bind_frame)
             unless blessed $bind_frame->method_frame and $bind_frame->method_frame->isa('Net::AMQP::Protocol::Queue::BindOk');
     $self->_inc_no_of_bindings_registered;
+}
+
+sub DEMOLISH {
+    my ($self) = shift;
+    $self->_mq->drain_writes(1)
+        if $self->_has_mq;
+    $self->_clear_mq;
 }
 
 __PACKAGE__->meta->make_immutable;

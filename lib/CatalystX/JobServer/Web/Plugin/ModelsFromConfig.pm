@@ -1,6 +1,5 @@
 package CatalystX::JobServer::Web::Plugin::ModelsFromConfig;
-use Moose::Role;
-use namespace::autoclean;
+use CatalystX::JobServer::Moose::Role;
 
 with 'CatalystX::DynamicComponent' => {
     name => '_setup_dynamic_model',

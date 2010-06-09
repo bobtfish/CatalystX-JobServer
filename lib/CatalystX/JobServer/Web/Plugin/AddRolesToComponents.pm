@@ -1,6 +1,5 @@
 package CatalystX::JobServer::Web::Plugin::AddRolesToComponents;
-use Moose::Role;
-use namespace::autoclean;
+use CatalystX::JobServer::Moose::Role;
 
 after 'setup_components' => sub {
     my $self = shift;

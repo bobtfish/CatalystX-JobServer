@@ -1,5 +1,5 @@
 package CatalystX::JobServer::Web::Model::ComponentMap;
-use Moose;
+use CatalystX::JobServer::Moose;
 use aliased 'CatalystX::JobServer::ComponentMap';
 use namespace::autoclean;
 

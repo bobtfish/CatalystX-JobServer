@@ -1,5 +1,5 @@
 package CatalystX::JobServer::Role::Storage;
-use Moose::Role;
+use CatalystX::JobServer::Moose::Role;
 use JSON::XS;
 use MooseX::Storage;
 use Set::Object;

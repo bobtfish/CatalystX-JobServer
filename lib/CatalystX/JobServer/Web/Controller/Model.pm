@@ -1,7 +1,6 @@
 package CatalystX::JobServer::Web::Controller::Model;
-use Moose;
+use CatalystX::JobServer::Moose;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
-use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller' };
 

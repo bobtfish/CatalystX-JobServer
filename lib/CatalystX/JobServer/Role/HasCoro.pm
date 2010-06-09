@@ -1,7 +1,6 @@
 package CatalystX::JobServer::Role::HasCoro;
-use Moose::Role;
+use CatalystX::JobServer::Moose::Role;
 use Coro;
-use namespace::autoclean;
 
 requires '_async';
 

@@ -1,11 +1,10 @@
 package CatalystX::JobServer::Web;
-use Moose;
+use CatalystX::JobServer::Moose;
 use Coro;
 use AnyEvent;
 use MooseX::Types::Moose qw/ Str /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use Sys::Hostname qw/ hostname /;
-use namespace::autoclean;
 
 use Catalyst::Runtime 5.80;
 

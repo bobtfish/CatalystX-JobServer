@@ -1,6 +1,5 @@
 package MooseX::Storage::Engine::Trait::OnlySerializeMarked;
-use Moose::Role;
-use namespace::autoclean;
+use CatalystX::JobServer::Moose::Role;
 
 around map_attributes => sub {
     my ($orig, $self, $method_name, @args) = @_;

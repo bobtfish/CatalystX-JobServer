@@ -1,7 +1,6 @@
 package CatalystX::JobServer::Job::Test::RunForThirtySeconds;
-use Moose;
+use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ Num /;
-use namespace::autoclean;
 
 with 'CatalystX::JobServer::Role::Storage';
 

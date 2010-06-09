@@ -1,10 +1,5 @@
 package CatalystX::JobServer::Web::ModelBase::Adaptor;
-use Moose;
-use Moose::Meta::Role::Composite;
-use MooseX::Clone ();
-use Log::Message::Structured ();
-use Log::Message::Structured::Stringify::AsJSON ();
-use namespace::autoclean;
+use CatalystX::JobServer::Moose;
 
 extends 'Catalyst::Model::Adaptor::Base';
 with 'CatalystX::Component::Traits' => { excludes => 'COMPONENT' };

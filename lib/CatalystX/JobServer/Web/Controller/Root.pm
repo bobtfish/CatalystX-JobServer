@@ -1,6 +1,5 @@
 package CatalystX::JobServer::Web::Controller::Root;
-use Moose;
-use namespace::autoclean;
+use CatalystX::JobServer::Moose;
 
 BEGIN { extends 'Catalyst::Controller' }
 

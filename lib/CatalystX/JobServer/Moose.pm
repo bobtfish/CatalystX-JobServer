@@ -11,14 +11,15 @@ use Moose::Autobox ();
 sub import {
     my $class = shift;
     my $into = caller;
-    do_import($into, 'Moose');
+    do_import(__PACKAGE__, $into, 'Moose');
 }
 
 sub do_import {
+    my $class = shift;
     my $into = shift;
     my @also = @_;
 
-    ( $import, $unimport, $init_meta ) = Moose::Exporter->build_import_methods(
+    my ( $import, $unimport, $init_meta ) = Moose::Exporter->build_import_methods(
         into => $into,
         also => [ @also, 'Moose::Util::TypeConstraints' ],
     );

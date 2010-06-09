@@ -1,6 +1,5 @@
 package CatalystX::JobServer::MessageQueue;
-use Moose;
-use Method::Signatures::Simple;
+use CatalystX::JobServer::Moose;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::Moose qw/ Int Bool HashRef ArrayRef Str /;
 use Try::Tiny;
@@ -11,7 +10,6 @@ use Coro;
 use aliased 'Net::RabbitFoot';
 use Data::Dumper;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
-use namespace::autoclean;
 
 our $VERBOSE = 0;
 

@@ -1,10 +1,11 @@
 package CatalystX::JobServer::Role::QueueListener;
-use Moose::Role;
-use namespace::autoclean;
+use CatalystX::JobServer::Moose::Role;
 
 sub BUILD {}
 with 'Catalyst::Component::ApplicationAttribute';
-after BUILD => {
+after BUILD => sub {
     my ($self) = @_;
     my $mq = $self->_application->model('MQ')
-}
+};
+
+1;

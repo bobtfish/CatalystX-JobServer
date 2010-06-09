@@ -5,4 +5,3 @@ sub Moose::Meta::Attribute::Custom::Trait::Serialize::register_implementation { 
 
 no Moose::Role;
 1;
-

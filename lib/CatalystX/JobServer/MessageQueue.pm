@@ -219,7 +219,7 @@ sub _build_queues_for_channel {
 
 sub _build_binding_for_queue {
     my ($self, $channel, $queue_name, $binding) = @_;
-    $binding->{queue} = $queue_name;
+    local $binding->{queue} = $queue_name;
     my $bind_frame = $channel->bind_queue(
        %$binding,
     );

@@ -4,21 +4,12 @@ use MooseX::Types::Moose qw/ Int ArrayRef Str /;
 use AnyEvent::Util qw/ fork_call /;
 use Moose::Autobox;
 use MooseX::Types::Set::Object;
-use MooseX::Storage::Engine;
-use CatalystX::JobServer::Meta::Attribute::Trait::Serialize;
 use aliased 'CatalystX::JobServer::Job::Running';
 use aliased 'CatalystX::JobServer::Job::Finished';
 
 use namespace::autoclean;
 
-MooseX::Storage::Engine->add_custom_type_handler(
-    'Set::Object' =>
-        expand => sub {},
-        collapse => sub {
-            my @members = $_[0]->members;
-            MooseX::Storage::Engine->find_type_handler( ArrayRef )->{collapse}->( \@members );
-        },
-);
+with 'CatalystX::JobServer::Role::Storage';
 
 has num_forked_workers => (
     is => 'ro',

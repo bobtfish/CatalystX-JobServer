@@ -3,10 +3,9 @@ use Moose;
 use MooseX::Types::Moose qw/ Object /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use DateTime;
-use MooseX::Storage;
 use namespace::autoclean;
 
-with Storage(engine => 'JSON');
+with 'CatalystX::JobServer::Role::Storage';
 
 has start_time => (
     isa => ISO8601DateTimeStr,

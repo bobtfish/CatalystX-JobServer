@@ -1,9 +1,9 @@
 package CatalystX::JobServer::Job::Test::RunForThirtySeconds;
 use Moose;
 use MooseX::Types::Moose qw/ Num /;
-use MooseX::Storage;
+use namespace::autoclean;
 
-with Storage(format => 'JSON');
+with 'CatalystX::JobServer::Role::Storage';
 
 has retval => (
     isa => Num,
@@ -16,4 +16,5 @@ sub run {
     return 303;
 }
 
+__PACKAGE__->meta->make_immutable;
 1;

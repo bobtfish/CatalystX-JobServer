@@ -1,6 +1,5 @@
 package CatalystX::JobServer::ComponentMap;
 use Moose;
-use MooseX::Storage;
 use MooseX::Types::Moose qw/ CodeRef HashRef /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use namespace::autoclean;

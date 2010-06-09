@@ -3,14 +3,10 @@ use Moose::Role;
 
 my @roles = (
     'MooseX::Clone',
-    'MooseX::Storage::Basic',
     'CatalystX::JobServer::Role::Storage',
     'Log::Message::Structured::Stringify::AsJSON',
     'Log::Message::Structured' => { excludes => [qw/ freeze /]},
 );
-foreach my $role (@roles) {
-    Class::MOP::load_class($role) unless ref $role;
-}
 
 after 'setup_components' => sub {
     my $self = shift;

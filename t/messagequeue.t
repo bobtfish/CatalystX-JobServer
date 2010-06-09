@@ -40,5 +40,4 @@ foreach my $name (qw/ channels exchanges queues bindings /) {
     is $mq->$attr_name, 1, "0 $attr_name before connect";
 }
 
-
 done_testing;

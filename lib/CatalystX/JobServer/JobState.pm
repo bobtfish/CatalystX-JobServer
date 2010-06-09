@@ -5,6 +5,7 @@ use AnyEvent::Util qw/ fork_call /;
 use Moose::Autobox;
 use MooseX::Types::Set::Object;
 use MooseX::Storage::Engine;
+use CatalystX::JobServer::Meta::Attribute::Trait::Serialize;
 use aliased 'CatalystX::JobServer::Job::Running';
 use aliased 'CatalystX::JobServer::Job::Finished';
 

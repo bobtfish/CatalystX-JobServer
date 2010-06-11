@@ -11,7 +11,7 @@ Model::MessageQueue:
                 exchanges:
                     - type: topic
                       durable: 1
-                      exchange: jobs'
+                      exchange: jobs
                 queues:
                     - queue: jobs_queue
                       durable: 1

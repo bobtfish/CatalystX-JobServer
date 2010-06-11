@@ -46,7 +46,7 @@ author_tests 't/author';
 catalyst;
 
 if ($Module::Install::AUTHOR) {
-    system("pod2text lib/CatalystX/Jobserver.pm > README")
+    system("pod2text lib/CatalystX/JobServer.pm > README")
         and die $!;
 }
 

@@ -17,6 +17,7 @@ has mq => (
     is => 'ro',
     isa => RabbitFoot,
     lazy => 1,
+    init_arg => undef,
     predicate => '_has_mq',
     builder => '_build_mq',
     clearer => '_clear_mq',
@@ -138,6 +139,7 @@ foreach my $name (qw/ channels exchanges queues bindings /) {
     has "no_of_" . $name . "_registered" => (
         isa => Int,
         is => 'ro',
+        init_arg => undef,
         default => 0,
         traits => ['Counter', 'Serialize'],
         handles => {

@@ -3,6 +3,7 @@ use strict;
 use inc::Module::Install;
 use Module::Install::Catalyst;
 use Module::Install::AuthorRequires;
+use Module::Install::AuthorTests;
 
 name 'CatalystX-JobServer';
 all_from 'lib/CatalystX/JobServer.pm';

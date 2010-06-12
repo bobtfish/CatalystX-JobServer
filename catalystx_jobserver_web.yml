@@ -21,7 +21,7 @@ Model::MessageQueue:
                 dispatch_to: JobState
                 results_exchange: firehose
                 results_routing_key: ""
-Model::JobState:
+Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     args:
         jobs_registered:

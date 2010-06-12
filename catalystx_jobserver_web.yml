@@ -18,7 +18,7 @@ Model::MessageQueue:
                       bind:
                         exchange: jobs
                         routing_key: "#"
-                dispatch_to: JobState
+                dispatch_to: ForkedJobRunner
                 results_exchange: firehose
                 results_routing_key: ""
 Model::ForkedJobRunner:

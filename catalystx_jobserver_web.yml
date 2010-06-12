@@ -35,7 +35,7 @@ Model::MessageQueue:
                           routing_key: "#"
                 dispatch_to: FireHoseLog
                 results_exchange: firehose
-                results_routing_key: ""
+                results_routing_key: "#"
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     args:

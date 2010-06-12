@@ -1,5 +1,6 @@
 package CatalystX::JobServer::Role::QueueListener;
 use CatalystX::JobServer::Moose::Role;
+use JSON qw/ decode_json /;
 
 requires 'act_on_message';
 
@@ -10,6 +11,9 @@ sub consume_message {
     # FIXME - deal with not being able to unserialize
     my $data = decode_json($message->{body}->payload);
     my $class = $data->{__CLASS__}; # FIXME - Deal with bad class.
+    unless ($class) {
+        return;
+    }
     my $object = $class->unpack($data);
     $self->act_on_message($object, $publisher);
 }

@@ -15,7 +15,8 @@ around collapse_object => sub {
     my ($orig, $self, @args) = @_;
     my $data = $self->$orig(@args);
     $data->{__CLASS__} = $self->object->catalyst_component_name
-        if $self->object->can('catalyst_component_name');
+        if $self->object->can('catalyst_component_name')
+            && $self->object->catalyst_component_name;
     return $data;
 };
 

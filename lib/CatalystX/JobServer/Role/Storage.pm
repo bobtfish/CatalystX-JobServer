@@ -17,8 +17,17 @@ MooseX::Storage::Engine->add_custom_type_handler(
             MooseX::Storage::Engine->find_type_handler( ArrayRef )->{collapse}->( \@members );
         },
 );
+foreach my $type (qw/File Dir/) {
+MooseX::Storage::Engine->add_custom_type_handler(
+    'Path::Class::' . $type =>
+        expand => sub {},
+        collapse => sub { shift . "" },
+);
+}
 
-with Storage(engine => 'JSON');
+with Storage(engine => 'JSON'),
+     'Log::Message::Structured::Stringify::AsJSON',
+     'Log::Message::Structured' => { excludes => [qw/ freeze /]};
 
 has catalyst_component_name => (
     is => 'ro',

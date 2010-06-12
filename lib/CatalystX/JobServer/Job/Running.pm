@@ -13,12 +13,14 @@ has start_time => (
     coerce => 1,
     # FIXME - But with just time()
     default => sub { DateTime->now },
+    traits => ['Serialize'],
 );
 
 has job => (
     isa => Object,
     is => 'ro',
     required => 1,
+    traits => ['Serialize'],
 );
 
 __PACKAGE__->meta->make_immutable;

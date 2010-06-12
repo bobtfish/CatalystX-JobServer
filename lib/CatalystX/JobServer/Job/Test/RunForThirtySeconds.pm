@@ -8,6 +8,7 @@ has retval => (
     isa => Num,
     is => 'ro',
     required => 1,
+    traits => ['Serialize'],
 );
 
 sub run {

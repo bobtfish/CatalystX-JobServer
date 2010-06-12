@@ -14,8 +14,6 @@ sub _apply_instance_roles {
     Moose::Util::apply_all_roles($component =>
         'MooseX::Clone',
         'CatalystX::JobServer::Role::Storage',
-        'Log::Message::Structured::Stringify::AsJSON',
-        'Log::Message::Structured' => { excludes => [qw/ freeze /]},
     );
     $component->_set_catalyst_component_name($component_name);
 }

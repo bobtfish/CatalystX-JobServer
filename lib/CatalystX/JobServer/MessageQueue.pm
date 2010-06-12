@@ -4,7 +4,6 @@ use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::Moose qw/ Int Bool HashRef ArrayRef Str /;
 use Try::Tiny;
 use MooseX::Types::Structured qw/ Dict /;
-use JSON qw/ decode_json /;
 use AnyEvent;
 use Coro;
 use aliased 'Net::RabbitFoot';
@@ -32,13 +31,14 @@ method BUILD ($args) {
         try {
             $self->mq;
             $self->_channel_objects;
-    #        for (1..10) {
-    #        $self->_channel_objects->{jobs}->publish(
-    #             body => CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze,
-    #             exchange => 'jobs',
-    #             routing_key => '#',
-    #         );
-    #        }
+            for (1..10) {
+                my $body = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze;
+            $self->_channel_objects->{jobs}->publish(
+                 body => $body,
+                 exchange => 'jobs',
+                 routing_key => '#',
+             );
+            }
         }
         catch {
             $cv->croak($_);
@@ -171,16 +171,23 @@ sub _build__channel_objects {
         my $code = CatalystX::JobServer::Web->can('model');
         # FIXME - For tests
         next unless $code;
-        my $dispatch_to = $code->('CatalystX::JobServer::Web', $channel_data->{dispatch_to}); # FIXME - EVIL!!
         my $publisher = $channel_data->{results_exchange}
-            ? sub { $channel->publish(
-             body => shift,
-             exchange => $channel_data->{results_exchange},
-             routing_key => $channel_data->{results_routing_key} . ':' . $channel_data->{dispatch_to},
-         )} : sub { warn shift; };
+            ? sub {
+                my $body = shift;
+                #warn("Publishing return message $body to ". $channel_data->{results_exchange});
+                $channel->publish(
+                    body => $body,
+                    exchange => $channel_data->{results_exchange},
+                    routing_key => $channel_data->{results_routing_key} . ':' . $channel_data->{dispatch_to},
+                );
+            }
+            : sub { warn shift; };
         $channel->consume(
             on_consume => sub {
                 my $message = shift;
+                my $dispatch_to = $code->('CatalystX::JobServer::Web', $channel_data->{dispatch_to}); # FIXME - EVIL!!
+                die("Cannot find dispatch_to for $name " . $channel_data->{dispatch_to})
+                    unless $dispatch_to;
                 $dispatch_to->consume_message($message, $publisher);
             },
         );

@@ -32,8 +32,8 @@ has jobs_running => (
     traits => ['Serialize'],
 );
 
-before _add_running => sub { shift->_add_forked_worker(shift) };
-after _remove_running => sub { shift->_delete_forked_worker(shift) };
+before _add_running => sub { shift->_add_forked_worker };
+after _remove_running => sub { shift->_delete_forked_worker };
 
 has jobs_registered => (
     is => 'ro',

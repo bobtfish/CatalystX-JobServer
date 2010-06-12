@@ -20,6 +20,7 @@ has ok => (
     isa => Bool,
     is => 'ro',
     default => 1,
+    traits => ['Serialize']
 );
 
 has running_job => (

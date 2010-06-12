@@ -139,6 +139,7 @@ foreach my $name (qw/ channels exchanges queues bindings /) {
     has "no_of_" . $name . "_registered" => (
         isa => Int,
         is => 'ro',
+        lazy => 1, # Hack, needed to avoid bug applying roles to instances in Moose, see test case.
         init_arg => undef,
         default => 0,
         traits => ['Counter', 'Serialize'],

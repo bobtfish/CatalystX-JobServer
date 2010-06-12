@@ -3,6 +3,7 @@ use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ Object /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use DateTime;
+use namespace::autoclean;
 
 with 'CatalystX::JobServer::Role::Storage';
 

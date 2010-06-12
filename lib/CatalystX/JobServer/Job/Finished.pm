@@ -2,6 +2,7 @@ package CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Moose;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use MooseX::Types::Moose qw/ Bool /;
+use namespace::autoclean;
 
 extends 'CatalystX::JobServer::Job::Running';
 

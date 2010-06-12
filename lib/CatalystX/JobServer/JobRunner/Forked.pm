@@ -1,10 +1,11 @@
-package CatalystX::JobServer::JobState;
+package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ Int ArrayRef Str /;
 use AnyEvent::Util qw/ fork_call /;
 use MooseX::Types::Set::Object;
 use aliased 'CatalystX::JobServer::Job::Running';
 use aliased 'CatalystX::JobServer::Job::Finished';
+use namespace::autoclean;
 
 with 'CatalystX::JobServer::Role::Storage';
 

@@ -46,39 +46,9 @@ __PACKAGE__->config(
         class => 'CatalystX::JobServer::MessageQueue',
         args => {
             channels => {
-                jobs => {
-                    exchanges => [
-                        {
-                            type => 'topic',
-                            durable => 1,
-                            exchange => 'jobs'
-                        }
-                    ],
-                    queues => [
-                        {
-                            queue => 'jobs_queue',
-                            durable => 1,
-                            bind => {
-                                exchange => 'jobs',
-                                routing_key => '#',
-                            }
-                        },
-                    ],
-                    dispatch_to => 'JobState',
-                    results_exchange => 'firehose',
-                    results_routing_key => '',
-                }
-            }
-        }
-    },
-    'Model::JobState' => {
-        class => 'CatalystX::JobServer::JobState',
-        args => {
-            jobs_registered => [
-                'CatalystX::JobServer::Job::Test::RunForThirtySeconds',
-            ],
+            },
         },
-    }
+    },
 );
 
 __PACKAGE__->setup();

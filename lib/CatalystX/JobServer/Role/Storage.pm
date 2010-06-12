@@ -21,7 +21,7 @@ foreach my $type (qw/File Dir/) {
 MooseX::Storage::Engine->add_custom_type_handler(
     'Path::Class::' . $type =>
         expand => sub {},
-        collapse => sub { shift . "" },
+        collapse => sub { shift() . "" },
 );
 }
 

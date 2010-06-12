@@ -32,7 +32,7 @@ requires 'MooseX::MethodAttributes' => '0.22';
 requires 'Catalyst::Model::Adaptor';
 requires 'Catalyst::Component::InstancePerContext';
 requires 'CatalystX::Component::Traits';
-requires 'CatalystX::DynamicComponent';
+requires 'CatalystX::InjectComponent';
 requires 'JSON::XS';
 requires 'JSON';
 requires 'JSON::Any';

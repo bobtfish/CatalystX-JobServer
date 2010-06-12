@@ -49,6 +49,17 @@ sub BUILD {
     }
 }
 
+sub consume_message {
+    my ($self, $message, $publisher) = @_;
+    print $message->{deliver}->method_frame->routing_key,
+        ': ', $message->{body}->payload, "\n";
+    # FIXME - deal with not being able to unserialize
+    my $data = decode_json($message->{body}->payload);
+    my $class = $data->{__CLASS__}; # FIXME - Deal with bad class.
+    my $job = $class->unpack($data);
+    $self->run_job($job, sub { $publisher->(shift) });
+}
+
 sub run_job {
     my ($self, $job, $return_cb) = @_;
     $job = Running->new(job => $job);

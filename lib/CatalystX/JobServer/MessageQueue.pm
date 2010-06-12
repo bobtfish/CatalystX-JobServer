@@ -169,24 +169,19 @@ sub _build__channel_objects {
         $self->_build_queues_for_channel($channel, $channel_data->{queues});
         #warn("GOT DISPATCH TO " . $channel_data->{dispatch_to});
         my $code = CatalystX::JobServer::Web->can('model');
+        # FIXME - For tests
         next unless $code;
         my $dispatch_to = $code->('CatalystX::JobServer::Web', $channel_data->{dispatch_to}); # FIXME - EVIL!!
+        my $publisher = $channel_data->{results_exchange}
+            ? sub { $channel->publish(
+             body => shift,
+             exchange => $channel_data->{results_exchange},
+             routing_key => $channel_data->{results_routing_key} . ':' . $channel_data->{dispatch_to},
+         )} : sub { warn shift; };
         $channel->consume(
             on_consume => sub {
-                #warn("CONSUME MESSAGE");
                 my $message = shift;
-                print $message->{deliver}->method_frame->routing_key,
-                    ': ', $message->{body}->payload, "\n";
-                # FIXME - deal with not being able to unserialize
-                my $data = decode_json($message->{body}->payload);
-                my $class = $data->{__CLASS__}; # FIXME - Deal with bad class.
-                my $job = $class->unpack($data);
-                $dispatch_to->run_job($job, $channel_data->{results_exchange}
-                    ? sub { $channel->publish(
-                     body => shift,
-                     exchange => $channel_data->{results_exchange},
-                     routing_key => $channel_data->{results_routing_key} . ':' . $class,
-                 )} : sub { warn shift; });
+                $dispatch_to->consume_message($message, $publisher);
             },
         );
     }

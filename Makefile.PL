@@ -25,6 +25,7 @@ requires 'MooseX::Clone';
 requires 'MooseX::Types::Set::Object';
 requires 'MooseX::Storage';
 requires 'MooseX::Types::Structured';
+requires 'MooseX::Types::Path::Class';
 requires 'MooseX::Types::Common::String';
 requires 'MooseX::Types';
 requires 'MooseX::MethodAttributes' => '0.22';

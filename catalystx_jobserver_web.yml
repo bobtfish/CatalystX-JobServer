@@ -11,7 +11,7 @@ Model::MessageQueue:
                 exchanges:
                     - type: topic
                       durable: 1
-                      exchange: jobs'
+                      exchange: jobs
                 queues:
                     - queue: jobs_queue
                       durable: 1
@@ -21,8 +21,27 @@ Model::MessageQueue:
                 dispatch_to: ForkedJobRunner
                 results_exchange: firehose
                 results_routing_key: ""
+            firehose:
+                exchanges:
+                    - type: topic
+                      durable: 1
+                      exchange: firehose
+                queues:
+# FIXME - Needs to go away if not listening, be anon - fixme!
+                    - queue: firehose_log
+                      durable: 1
+                      bind:
+                          exchange: firehose
+                          routing_key: "#"
+                dispatch_to: FireHoseLog
+                results_exchange: firehose
+                results_routing_key: ""
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     args:
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
+Model::FireHoseLog:
+    class: "CatalystX::JobServer::LogWriter"
+    args:
+        output_file: __path_to(firehose.log)__

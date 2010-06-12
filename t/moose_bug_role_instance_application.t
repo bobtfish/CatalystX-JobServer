@@ -29,9 +29,13 @@ $i->$_(42) for qw/foo bar baz quux moo goo boo/;
 
 Moose::Util::apply_all_roles($i, 'A::Role');
 
+foreach (qw/foo bar goo boo/) {
+    is $i->$_, 42;
+}
+
 TODO: {
     local $TODO = 'Moose bug';
-    foreach (qw/foo bar baz quux moo goo boo/) {
+    foreach (qw/baz quux moo/) {
         is $i->$_, 42;
     }
 }

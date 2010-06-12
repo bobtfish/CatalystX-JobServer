@@ -11,7 +11,6 @@ sub mangle_arguments {
 
 sub COMPONENT {
     my ($class, $app, @rest) = @_;
-    Class::MOP::load_class('CatalystX::JobServer::Role::Storage');
     my $self = $class->next::method($app, @rest);
 
     $self->_load_adapted_class;

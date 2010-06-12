@@ -83,8 +83,11 @@ my $rf = RabbitFoot->new(
     Net::RabbitFoot::default_amqp_spec(),
 );
 
+my ($build_mq_lock, $conn);
 method _build_mq {
-    my $conn;
+    $build_mq_lock ?
+        do { $build_mq_lock->recv; return $conn }
+      : do { $build_mq_lock = AnyEvent->condvar };
     try {
         $conn = $rf->connect(
            on_close => sub {
@@ -99,8 +102,13 @@ method _build_mq {
         );
     }
     catch {
+        $build_mq_lock->send;
+        undef $build_mq_lock;
+        # FIXME - Retry?
         die(sprintf("Could not connect to Rabbit MQ server on %s:%s - error $_\n", $self->host, $self->port));
     };
+    $build_mq_lock->send;
+    undef $build_mq_lock;
     return $conn;
 }
 
@@ -132,7 +140,7 @@ has _channel_objects => (
     clearer => '_clear_channel_objects',
 );
 
-before '_clear_mq' => sub { Carp::cluck("_clear_mq called"); shift->_clear_channel_objects };
+before '_clear_mq' => sub { shift->_clear_channel_objects };
 
 foreach my $name (qw/ channels exchanges queues bindings /) {
     my $attr_name = "no_of_" . $name . "_registered";
@@ -157,13 +165,17 @@ after '_clear_channel_objects' => sub {
     $self->_reset_no_of_bindings_registered;
 };
 
+my ($build_channel_objects_lock, %channel_objects);
 sub _build__channel_objects {
     my $self = shift;
-    my %data;
+    $build_channel_objects_lock ?
+        do { $build_channel_objects_lock->recv; return $conn }
+      : do { $build_channel_objects_lock = AnyEvent->condvar };
+    %channel_objects = ();
     foreach my $name (keys %{$self->channels}) {
         my $channel_data = $self->channels->{$name};
         my $channel = $self->mq->open_channel;
-        $data{$name} = $channel;
+        $channel_objects{$name} = $channel;
         $self->_inc_no_of_channels_registered;
         $self->_build_exchanges_for_channel($channel, $channel_data->{exchanges});
         $self->_build_queues_for_channel($channel, $channel_data->{queues});
@@ -192,7 +204,8 @@ sub _build__channel_objects {
             },
         );
     }
-    return \%data;
+    $build_channel_objects_lock->send;
+    return {%channel_objects};
 }
 
 sub _build_exchanges_for_channel {

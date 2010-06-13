@@ -26,11 +26,11 @@ requires 'MooseX::Storage';
 requires 'MooseX::Types::Structured';
 requires 'MooseX::Types::Path::Class';
 requires 'MooseX::Types::Common::String';
+requires 'MooseX::Types::LoadableClass' => '0.002';
 requires 'MooseX::Types';
 requires 'MooseX::MethodAttributes' => '0.22';
-requires 'Catalyst::Model::Adaptor';
 requires 'Catalyst::Component::InstancePerContext';
-requires 'CatalystX::Component::Traits';
+requires 'MooseX::Traits::Pluggable' => '0.10'; # I.e. git d37ecc6
 requires 'CatalystX::InjectComponent';
 requires 'JSON::XS';
 requires 'JSON';

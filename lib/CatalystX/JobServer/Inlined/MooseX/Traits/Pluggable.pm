@@ -80,7 +80,6 @@ sub _transform_trait {
         }
 
         my $trait = join '::', $ns, $name;
-        warn $trait;
         return $trait if eval { Class::MOP::load_class($trait) };
     }
 

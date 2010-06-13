@@ -226,7 +226,7 @@ sub _build__channel_objects {
         my $publisher = $channel_data->{results_exchange}
             ? sub {
                 my $body = shift;
-                #warn("Publishing return message $body to ". $channel_data->{results_exchange});
+                warn("Publishing return message $body to ". $channel_data->{results_exchange});
                 $channel->publish(
                     body => $body,
                     exchange => $channel_data->{results_exchange},

@@ -35,13 +35,16 @@ Model::MessageQueue:
                           routing_key: "#"
                 dispatch_to: FireHoseLog
                 results_exchange: firehose
-                results_routing_key: "#"
+                results_routing_key: ""
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     traits:
         - PostForkCallback
         - JobFinishedCallback
+        - PublishSelf
     args:
+        publish_self_every: 10
+        publish_self_to: jobs
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
         post_fork_callback: "warn('POST FORK')"

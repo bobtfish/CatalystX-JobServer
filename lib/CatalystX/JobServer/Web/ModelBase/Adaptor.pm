@@ -19,6 +19,7 @@ sub _trait_namespace {
             push(@list, 'CatalystX::JobServer::TraitFor' . $class)
         }
         while ($class =~ s/::\w+$//);
+        push(@list, 'CatalystX::JobServer::TraitFor::Model' . $class);
         return \@list;
     }
     return $class . '::TraitFor';

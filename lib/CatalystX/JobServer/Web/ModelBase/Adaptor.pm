@@ -3,7 +3,7 @@ use CatalystX::JobServer::Moose;
 use Moose::Util qw/ find_meta /;
 
 extends 'Catalyst::Model::Adaptor::Base';
-with 'CatalystX::Component::Traits' => { excludes => 'COMPONENT' };
+with 'CatalystX::Component::Traits' => { -excludes => 'COMPONENT' };
 
 has '+_trait_merge' => (default => 1);
 

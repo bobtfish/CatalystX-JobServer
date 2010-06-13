@@ -39,7 +39,7 @@ Model::MessageQueue:
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     traits:
-        - +CatalystX::JobServer::TraitFor::JobRunner::Forked::PostForkCallback
+        - PostForkCallback
     args:
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"

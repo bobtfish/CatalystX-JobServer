@@ -1,5 +1,6 @@
 package CatalystX::JobServer::Job::Test::RunForThirtySeconds;
 use CatalystX::JobServer::Moose;
+use AnyEvent;
 use MooseX::Types::Moose qw/ Num /;
 
 with 'CatalystX::JobServer::Role::Storage';
@@ -12,7 +13,9 @@ has retval => (
 );
 
 sub run {
-    sleep 30;
+    my $cv = AnyEvent->condvar;
+    my $timer = AnyEvent->timer(after => 30, cb => sub { $cv->send });
+    $cv->recv;
     return 303;
 }
 

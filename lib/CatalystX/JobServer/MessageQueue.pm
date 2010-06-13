@@ -203,6 +203,8 @@ sub publish_to_channel {
     $publisher->($message);
 }
 
+with 'CatalystX::JobServer::Role::LocatesModels';
+
 my ($build_channel_objects_lock, %channel_objects);
 sub _build__channel_objects {
     my $self = shift;
@@ -237,7 +239,7 @@ sub _build__channel_objects {
         $channel->consume(
             on_consume => sub {
                 my $message = shift;
-                my $dispatch_to = $code->('CatalystX::JobServer::Web', $channel_data->{dispatch_to}); # FIXME - EVIL!!
+                my $dispatch_to = $self->locate_model( $channel_data->{dispatch_to} );
                 die("Cannot find dispatch_to for $name " . $channel_data->{dispatch_to})
                     unless $dispatch_to;
                 $dispatch_to->consume_message($message, sub { $self->publish_to_channel($name, shift() ) } );

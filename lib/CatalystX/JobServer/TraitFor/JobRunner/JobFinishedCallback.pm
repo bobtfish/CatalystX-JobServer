@@ -1,4 +1,4 @@
-package CatalystX::JobServer::TraitFor::JobRunner::Forked::JobFinishedCallback;
+package CatalystX::JobServer::TraitFor::JobRunner::JobFinishedCallback;
 use CatalystX::JobServer::Moose::Role;
 
 with 'CatalystX::JobServer::Role::CallBackWrapper' => {

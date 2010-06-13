@@ -40,7 +40,7 @@ Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     traits:
         - +CatalystX::JobServer::TraitFor::JobRunner::Forked::PostForkCallback
-        - +CatalystX::JobServer::TraitFor::JobRunner::Forked::JobFinishedCallback
+        - +CatalystX::JobServer::TraitFor::JobRunner::JobFinishedCallback
     args:
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"

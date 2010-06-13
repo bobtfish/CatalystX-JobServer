@@ -1,5 +1,6 @@
 package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
+use AnyEvent::Util qw/ fork_call /;
 use namespace::autoclean;
 
 with 'CatalystX::JobServer::JobRunner';
@@ -28,4 +29,3 @@ sub _do_run_job {
 
 __PACKAGE__->meta->make_immutable;
 1;
-

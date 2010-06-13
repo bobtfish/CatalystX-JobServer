@@ -32,7 +32,7 @@ has jobs_running => (
     traits => ['Serialize'],
 );
 
-before _add_running => sub { shift->_add_running_job_count };
+before _add_running => sub { shift->_inc_running_job_count };
 after _remove_running => sub { shift->_dec_running_job_count };
 
 has jobs_registered => (

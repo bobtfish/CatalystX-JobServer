@@ -20,13 +20,14 @@ has ok => (
     isa => Bool,
     is => 'ro',
     default => 1,
-    traits => ['Serialize']
+    traits => ['Serialize'],
 );
 
 has running_job => (
     isa => 'CatalystX::JobServer::Job::Running',
     is => 'ro',
     required => 1,
+    traits => ['Serialize'],
 );
 
 has finish_time => (

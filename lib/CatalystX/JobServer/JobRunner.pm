@@ -49,7 +49,7 @@ sub BUILD {
     }
 }
 
-with 'CatalystX::JobServer::Role::QueueListener';
+with 'CatalystX::JobServer::Role::QueueConsumer';
 
 sub act_on_message {
     my ($self, $message, $publisher) = @_;

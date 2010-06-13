@@ -1,4 +1,4 @@
-package CatalystX::JobServer::Role::QueueListener;
+package CatalystX::JobServer::Role::QueueConsumer;
 use CatalystX::JobServer::Moose::Role;
 use JSON qw/ decode_json /;
 use MooseX::Types::Moose qw/ Bool /;

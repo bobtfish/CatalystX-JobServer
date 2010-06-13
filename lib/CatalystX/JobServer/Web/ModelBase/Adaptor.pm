@@ -1,8 +1,9 @@
 package CatalystX::JobServer::Web::ModelBase::Adaptor;
 use CatalystX::JobServer::Moose;
 use Moose::Util qw/ find_meta /;
-use MooseX::Types::Moose qw/ HashRef /;
+use MooseX::Types::Moose qw/ HashRef ArrayRef Str /;
 use MooseX::Types::LoadableClass qw/LoadableClass/;
+use CatalystX::JobServer::Inlined::MooseX::Traits::Pluggable;
 
 extends 'Catalyst::Model';
 with 'MooseX::Traits::Pluggable' => {
@@ -13,7 +14,12 @@ with 'MooseX::Traits::Pluggable' => {
 sub _trait_namespace {
     my $class = shift->{class};
     if ($class =~ s/^CatalystX::JobServer//) {
-        return 'CatalystX::JobServer::TraitFor' . $class;
+        my @list;
+        do {
+            push(@list, 'CatalystX::JobServer::TraitFor' . $class)
+        }
+        while ($class =~ s/::\w+$//);
+        return \@list;
     }
     return $class . '::TraitFor';
 }
@@ -31,11 +37,25 @@ has args => (
     default => sub { {} },
 );
 
-sub COMPONENT {
-    my ($class, @rest) = @_;
-    my $self = $class->next::method(@rest);
+has traits => (
+    isa => Str|ArrayRef([Str]),
+    predicate => 'has_traits',
+    is => 'ro',
+);
 
-    $self->build_instance_with_traits($self->class, $self->args);
-};
+sub COMPONENT {
+    my ($class, $app, @rest) = @_;
+    my $self = $class->next::method($app, @rest);
+
+    $self->build_instance_with_traits(
+        $self->class,
+        {
+            publish_message_callback => sub { $app->model('MessageQueue')->publish_to_channel( @_ ) },
+            model_locator_callback => sub { $app->model(@_) },
+            $self->has_traits ? (traits => $self->traits) : (),
+            %{ $self->args },
+        },
+    );
+}
 
 __PACKAGE__->meta->make_immutable;

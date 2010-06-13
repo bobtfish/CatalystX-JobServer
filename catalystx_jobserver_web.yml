@@ -38,9 +38,12 @@ Model::MessageQueue:
                 results_routing_key: "#"
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
+    traits:
+        - +CatalystX::JobServer::TraitFor::JobRunner::Forked::PostForkCallback
     args:
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
+        post_fork_callback: "warn('POST FORK')"
 Model::FireHoseLog:
     class: "CatalystX::JobServer::LogWriter"
     args:

@@ -40,12 +40,15 @@ sub consume_message {
         warn(blessed($self) . " class $class not loaded, cannot unpack! ($payload)\n");
         return;
     }
-    unless ($class->can('unpack')) {
-        warn(blessed($self) . " class $class does not have an ->unpack method ($payload)\n");
-        return;
-    }
 
-    my $object = $class->unpack($data);
+    my $object;
+    try {
+        $object = $class->unpack($data);
+    }
+    catch {
+        warn(blessed($self) . " class $class threw for ->unpack method: $_ ($payload)\n");
+        return;
+    };
     $self->act_on_message($object, $publisher);
 }
 

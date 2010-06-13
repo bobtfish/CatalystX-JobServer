@@ -133,12 +133,30 @@ has channels => (
     traits => ['Serialize'],
 );
 
+foreach my $name (qw/ published consumed /) {
+    has 'channel_messages_' . $name => (
+        isa => HashRef,
+        is => 'ro',
+        lazy => 1,
+        default => sub {
+            return { map { $_ => 0 } keys %{ shift->channels } };
+        },
+        traits => ['Serialize'],
+        clearer => '_clear_channel_messages_' . $name,
+    );
+}
+
 has _channel_objects => (
     isa => HashRef,
     is => 'ro',
     lazy_build => 1,
     clearer => '_clear_channel_objects',
 );
+after _channel_objects => sub {
+    my $self = shift;
+    $self->channel_messages_published;
+    $self->channel_messages_consumed;
+};
 
 before '_clear_mq' => sub { shift->_clear_channel_objects };
 
@@ -163,6 +181,8 @@ after '_clear_channel_objects' => sub {
     $self->_reset_no_of_exchanges_registered;
     $self->_reset_no_of_queues_registered;
     $self->_reset_no_of_bindings_registered;
+    $self->_clear_channel_messages_consumed;
+    $self->_clear_channel_messages_published;
 };
 
 my ($build_channel_objects_lock, %channel_objects);
@@ -192,6 +212,7 @@ sub _build__channel_objects {
                     exchange => $channel_data->{results_exchange},
                     routing_key => $channel_data->{results_routing_key} . ':' . $channel_data->{dispatch_to},
                 );
+                $self->channel_messages_published->{$name}++;
             }
             : sub { warn shift; };
         $channel->consume(
@@ -201,6 +222,7 @@ sub _build__channel_objects {
                 die("Cannot find dispatch_to for $name " . $channel_data->{dispatch_to})
                     unless $dispatch_to;
                 $dispatch_to->consume_message($message, $publisher);
+                $self->channel_messages_consumed->{$name}++;
             },
         );
     }

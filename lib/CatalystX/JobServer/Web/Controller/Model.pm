@@ -9,7 +9,7 @@ sub base : Chained('/base') PathPart('model') CaptureArgs(0) {}
 sub find : Chained('base') PathPart('') CaptureArgs(1) {
     my ($self, $c, $name) = @_;
     my $component = is_NonEmptySimpleStr($name)
-        && $c->components->{'CatalystX::JobServer::Web::Model::' . $name}
+        && $c->model($name)
         or $c->detach('/error404');
     $c->stash(component => $component);
 }

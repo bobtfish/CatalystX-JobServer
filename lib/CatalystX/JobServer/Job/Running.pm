@@ -21,6 +21,7 @@ has job => (
     is => 'ro',
     required => 1,
     traits => ['Serialize'],
+    handles => ['run'],
 );
 
 __PACKAGE__->meta->make_immutable;

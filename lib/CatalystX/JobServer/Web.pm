@@ -12,7 +12,6 @@ use Catalyst qw/
     +CatalystX::JobServer::Web::Plugin::ModelsFromConfig
     +CatalystX::JobServer::Web::Plugin::AddRolesToComponents
     ConfigLoader
-    Static::Simple
 /;
 
 extends 'Catalyst';

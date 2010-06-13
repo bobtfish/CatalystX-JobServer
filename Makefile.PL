@@ -10,7 +10,6 @@ all_from 'lib/CatalystX/JobServer.pm';
 
 requires 'Catalyst::Runtime' => '5.80022';
 requires 'Catalyst::Plugin::ConfigLoader';
-requires 'Catalyst::Plugin::Static::Simple';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'YAML';
@@ -18,6 +17,7 @@ requires 'Catalyst::Engine::PSGI';
 requires 'Corona' => '0.1004';
 requires 'Coro';
 requires 'Net::RabbitFoot';
+requires 'Web::Hippy';
 requires 'Log::Message::Structured';
 requires 'MooseX::Types::ISO8601';
 requires 'MooseX::Clone';

@@ -13,11 +13,11 @@ requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'YAML';
-requires 'Catalyst::Engine::PSGI';
+requires 'Catalyst::Engine::PSGI'; # At least bf871c7
 requires 'Corona' => '0.1004';
 requires 'Coro';
 requires 'Net::RabbitFoot';
-requires 'Web::Hippy';
+requires 'Web::Hippy'; # At least 404befa
 requires 'Log::Message::Structured';
 requires 'MooseX::Types::ISO8601';
 requires 'MooseX::Clone';

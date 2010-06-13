@@ -1,40 +1,41 @@
 package CatalystX::JobServer::Web::ModelBase::Adaptor;
 use CatalystX::JobServer::Moose;
 use Moose::Util qw/ find_meta /;
+use MooseX::Types::Moose qw/ HashRef /;
+use MooseX::Types::LoadableClass qw/LoadableClass/;
 
-extends 'Catalyst::Model::Adaptor::Base';
-with 'CatalystX::Component::Traits' => { -excludes => 'COMPONENT' };
+extends 'Catalyst::Model';
+with 'MooseX::Traits::Pluggable' => {
+    -excludes => ['new_with_traits'],
+    -alias => { _build_instance_with_traits => 'build_instance_with_traits' },
+};
 
-has '+_trait_merge' => (default => 1);
-
-sub mangle_arguments {
-    my ($self, $args) = @_;
-    return {catalyst_component_name => $self->catalyst_component_name, %$args};
+sub _trait_namespace {
+    my $class = shift->{class};
+    if ($class =~ s/^CatalystX::JobServer//) {
+        return 'CatalystX::JobServer::TraitFor' . $class;
+    }
+    return $class . '::TraitFor';
 }
 
+has class => (
+    isa => LoadableClass,
+    is => 'ro',
+    required => 1,
+    coerce => 1,
+);
+
+has args => (
+    isa => HashRef,
+    is => 'ro',
+    default => sub { {} },
+);
+
 sub COMPONENT {
-    my ($class, $app, @rest) = @_;
-    my $self = $class->next::method($app, @rest);
+    my ($class, @rest) = @_;
+    my $self = $class->next::method(@rest);
 
-    $self->_load_adapted_class;
-
-    if ($self->{traits}) {
-        my @traits_from_config = $self->_resolve_traits(@{$self->{traits}});
-        my $meta = $class->meta->create_anon_class(
-            superclasses => [ find_meta($self->{class})->name ],
-            roles        => \@traits_from_config,
-            cache        => 1,
-        );
-        # Method attributes in inherited roles may have turned metaclass
-        # to lies. CatalystX::Component::Traits related special move
-        # to deal with this here.
-        $meta = find_meta($meta->name);
-
-        $meta->add_method('meta' => sub { $meta });
-        $self->{class} = $meta->name;
-    }
-
-    return $self->_create_instance($app);
+    $self->build_instance_with_traits($self->class, $self->args);
 };
 
 __PACKAGE__->meta->make_immutable;

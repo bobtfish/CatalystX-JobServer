@@ -40,10 +40,12 @@ Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     traits:
         - +CatalystX::JobServer::TraitFor::JobRunner::Forked::PostForkCallback
+        - +CatalystX::JobServer::TraitFor::JobRunner::Forked::JobFinishedCallback
     args:
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
         post_fork_callback: "warn('POST FORK')"
+        job_finished_callback: "warn('JOB FINISHED')"
 Model::FireHoseLog:
     class: "CatalystX::JobServer::LogWriter"
     args:

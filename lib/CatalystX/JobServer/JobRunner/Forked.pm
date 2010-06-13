@@ -56,12 +56,16 @@ sub act_on_message {
     $self->run_job($message, $publisher);
 }
 
-sub run_job_post_fork {
+sub post_fork {
     my ($self, $job) = @_;
 }
 
-sub run_job_post_work {
+sub job_finished {
     my ($self, $job) = @_;
+}
+
+sub job_failed {
+    my ($self, $job, $error, $return_cb) = @_;
 }
 
 sub run_job {
@@ -70,19 +74,19 @@ sub run_job {
     $self->_add_running($job);
     # What happens about many many requets..
     fork_call {
-        $self->run_job_post_fork($job, $return_cb);
-        my $ret = $job->run;
-        $self->run_job_post_work($job, $ret, $return_cb);
-        return $ret;
+        $self->post_fork($job, $return_cb);
+        $job->run;
     }
     sub {
         $self->_remove_running($job);
         if (scalar @_) {
+            $self->job_finished($job, shift, $return_cb);
             warn("Job ran, returned " . @_);
             $return_cb->(Finished->new(job => $job));
         }
         else {
             warn("Job failed, returned " . $@);
+            $self->job_failed($job, $@, $return_cb);
             $return_cb->(Finished->new(job => $job, ok => 0));
         }
     };

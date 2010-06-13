@@ -35,7 +35,7 @@ Standard 404 error page
 
 =cut
 
-sub default : Chained('base') Args {
+sub default : Chained('base') PathPart('') Args {
     my ( $self, $c ) = @_;
     $c->detach('error404');
 }

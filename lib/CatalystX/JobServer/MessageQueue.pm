@@ -6,6 +6,7 @@ use Try::Tiny;
 use MooseX::Types::Structured qw/ Dict /;
 use AnyEvent;
 use Coro;
+use Carp qw/ croak confess /;
 use aliased 'Net::RabbitFoot';
 use Data::Dumper;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
@@ -183,7 +184,24 @@ after '_clear_channel_objects' => sub {
     $self->_reset_no_of_bindings_registered;
     $self->_clear_channel_messages_consumed;
     $self->_clear_channel_messages_published;
+    $self->_clear_channel_publishers;
 };
+
+has _channel_publishers => (
+    isa => HashRef,
+    default => sub { {} },
+    lazy => 1,
+    is => 'ro',
+    clearer => '_clear_channel_publishers',
+);
+
+sub publish_to_channel {
+    my ($self, $channel, $message) = @_;
+    $self->_channel_objects; # Ensure we have this built (with criticial section locked)
+    my $publisher = $self->_channel_publishers->{$channel}
+        or croak "Cannot find channel $channel";
+    $publisher->($message);
+}
 
 my ($build_channel_objects_lock, %channel_objects);
 sub _build__channel_objects {
@@ -215,13 +233,14 @@ sub _build__channel_objects {
                 $self->channel_messages_published->{$name}++;
             }
             : sub { warn shift; };
+        $self->_channel_publishers->{$name} = $publisher;
         $channel->consume(
             on_consume => sub {
                 my $message = shift;
                 my $dispatch_to = $code->('CatalystX::JobServer::Web', $channel_data->{dispatch_to}); # FIXME - EVIL!!
                 die("Cannot find dispatch_to for $name " . $channel_data->{dispatch_to})
                     unless $dispatch_to;
-                $dispatch_to->consume_message($message, $publisher);
+                $dispatch_to->consume_message($message, sub { $self->publish_to_channel($name, shift() ) } );
                 $self->channel_messages_consumed->{$name}++;
             },
         );

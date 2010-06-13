@@ -5,7 +5,10 @@ use MooseX::Types::Moose qw/ HashRef /;
 use MooseX::Types::LoadableClass qw/LoadableClass/;
 
 extends 'Catalyst::Model';
-with 'MooseX::Traits::Pluggable' => { exclude => ['new_with_traits'] };
+with 'MooseX::Traits::Pluggable' => {
+    -excludes => ['new_with_traits'],
+    -alias => { _build_instance_with_traits => 'build_instance_with_traits' },
+};
 
 sub _trait_namespace {
     my $class = shift->{class};
@@ -13,11 +16,6 @@ sub _trait_namespace {
         return 'CatalystX::JobServer::TraitFor' . $class;
     }
     return $class . '::TraitFor';
-}
-
-sub mangle_arguments {
-    my ($self, $args) = @_;
-    return {catalyst_component_name => $self->catalyst_component_name, %$args};
 }
 
 has class => (
@@ -37,7 +35,7 @@ sub COMPONENT {
     my ($class, @rest) = @_;
     my $self = $class->next::method(@rest);
 
-    $self->_build_instance_with_traits($self->class, $self->args);
+    $self->build_instance_with_traits($self->class, $self->args);
 };
 
 __PACKAGE__->meta->make_immutable;

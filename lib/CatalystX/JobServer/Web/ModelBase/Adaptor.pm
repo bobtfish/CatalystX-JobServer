@@ -1,8 +1,11 @@
 package CatalystX::JobServer::Web::ModelBase::Adaptor;
 use CatalystX::JobServer::Moose;
+use Moose::Util qw/ find_meta /;
 
 extends 'Catalyst::Model::Adaptor::Base';
 with 'CatalystX::Component::Traits' => { excludes => 'COMPONENT' };
+
+has '+_trait_merge' => (default => 1);
 
 sub mangle_arguments {
     my ($self, $args) = @_;
@@ -14,18 +17,24 @@ sub COMPONENT {
     my $self = $class->next::method($app, @rest);
 
     $self->_load_adapted_class;
-    my $instance = $self->_create_instance($app);
 
-    my @traits_from_config;
     if ($self->{traits}) {
-        @traits_from_config = $self->_resolve_traits(@{$self->{traits}});
+        my @traits_from_config = $self->_resolve_traits(@{$self->{traits}});
+        my $meta = $class->meta->create_anon_class(
+            superclasses => [ find_meta($self->{class})->name ],
+            roles        => \@traits_from_config,
+            cache        => 1,
+        );
+        # Method attributes in inherited roles may have turned metaclass
+        # to lies. CatalystX::Component::Traits related special move
+        # to deal with this here.
+        $meta = find_meta($meta->name);
+
+        $meta->add_method('meta' => sub { $meta });
+        $self->{class} = $meta->name;
     }
 
-    if (@traits_from_config) {
-        warn("Applying extra configured roles " . join(', ', @traits_from_config) . " to instance $instance");
-        Moose::Util::apply_all_roles($instance, @traits_from_config);
-    }
-    return $instance;
+    return $self->_create_instance($app);
 };
 
 __PACKAGE__->meta->make_immutable;

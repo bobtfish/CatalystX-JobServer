@@ -56,13 +56,24 @@ sub act_on_message {
     $self->run_job($message, $publisher);
 }
 
+sub run_job_post_fork {
+    my ($self, $job) = @_;
+}
+
+sub run_job_post_work {
+    my ($self, $job) = @_;
+}
+
 sub run_job {
     my ($self, $job, $return_cb) = @_;
     $job = Running->new(job => $job);
     $self->_add_running($job);
     # What happens about many many requets..
     fork_call {
-        $job->job->run;
+        $self->run_job_post_fork($job, $return_cb);
+        my $ret = $job->run;
+        $self->run_job_post_work($job, $ret, $return_cb);
+        return $ret;
     }
     sub {
         $self->_remove_running($job);

@@ -17,7 +17,7 @@ requires 'Catalyst::Engine::PSGI'; # At least bf871c7
 requires 'Corona' => '0.1004';
 requires 'Coro';
 requires 'Net::RabbitFoot';
-requires 'Web::Hippy'; # At least 404befa
+requires 'Web::Hippie'; # At least 404befa
 requires 'Log::Message::Structured';
 requires 'MooseX::Types::ISO8601';
 requires 'MooseX::Clone';
@@ -30,7 +30,7 @@ requires 'MooseX::Types::LoadableClass' => '0.002';
 requires 'MooseX::Types';
 requires 'MooseX::MethodAttributes' => '0.22';
 requires 'Catalyst::Component::InstancePerContext';
-requires 'MooseX::Traits::Pluggable' => '0.10'; # I.e. git d37ecc6
+requires 'MooseX::Traits::Pluggable' => '0.09'; # at least d37ecc6
 requires 'CatalystX::InjectComponent';
 requires 'JSON::XS';
 requires 'JSON';

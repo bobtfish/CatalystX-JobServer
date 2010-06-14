@@ -1,8 +1,8 @@
-package CatalystX::JobServer::Role::CallBackWrapper;
+package CatalystX::JobServer::Role::CallbackWrapper;
 use MooseX::Role::Parameterized;
 use MooseX::Types::Moose qw/ CodeRef Str /;
 use Moose::Util::TypeConstraints;
-use namespace::autoclean;
+#use namespace::autoclean;
 
 my $code = subtype CodeRef, where { 1 };
 coerce $code, from Str, via { eval "sub { $_ };" };

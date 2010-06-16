@@ -3,6 +3,8 @@ use CatalystX::JobServer::Moose;
 use MooseX::Types::Path::Class qw/ File /;
 use MooseX::Types::Moose qw/ Int Object /;
 use AnyEvent;
+use Fcntl;
+use IO::Seekable;
 
 with 'CatalystX::JobServer::Role::Storage';
 
@@ -17,8 +19,21 @@ has output_file => (
 has fh => (
     is => 'ro',
     lazy => 1,
-    default => sub { shift->output_file->openw },
+    default => sub {
+        my $self = shift;
+        my $fh = $self->output_file->openw
+            or Carp::coness("Cannot open " . $self->output_file . " for writing: $!");
+        $fh->seek(0, SEEK_END);
+        $fh;
+    },
+    clearer => '_close_fh',
+    handles => {
+        _write_fh => 'write',
+    },
 );
+
+after _write_fh => sub { shift->_schedule_flush };
+before _close_fh => sub { shift->_do_flush };
 
 has messages_logged => (
     init_arg => undef,
@@ -32,8 +47,29 @@ has messages_logged => (
     },
 );
 
-has _flush_pending => (
-    is => 'rw',
+has _flush => (
+    reader => '_schedule_flush',
+    clearer => '_do_flush',
+    lazy => 1,
+    default => sub {
+        AnyEvent->timer(
+            after => 1,
+            cb => sub { shift->_do_flush },
+        );
+    },
+);
+
+after _do_flush => sub { shift->fh->flush };
+
+has _hup_handler => (
+    is => 'ro',
+    default => sub {
+        my $self = shift;
+        AnyEvent->signal (
+            signal => 'HUP',
+            cb => sub { $self->_close_fh; $self->_fh; },
+        );
+    },
 );
 
 method BUILD { $self->fh }
@@ -44,10 +80,7 @@ method consume_message ($message, $publisher) {
     my $write = $message->{deliver}->method_frame->routing_key . ': ' . $payload;
 #    print $message->{deliver}->method_frame->routing_key,
 #        ': ', $payload;
-    $self->fh->write($write);
-    if (!$self->_flush_pending) {
-        $self->_flush_pending(AnyEvent->timer(after => 1, cb => sub { $self->_flush_pending(undef); $self->fh->flush; }));
-    }
+    $self->_write_fh($write);
     $self->_inc_messages_logged;
 }
 

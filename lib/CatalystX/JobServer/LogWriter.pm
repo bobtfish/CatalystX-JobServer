@@ -41,9 +41,10 @@ method BUILD { $self->fh }
 method consume_message ($message, $publisher) {
     my $payload = $message->{body}->payload;
     $payload .= "\n" unless $payload =~ /\n$/;
-    print $message->{deliver}->method_frame->routing_key,
-        ': ', $payload;
-    $self->fh->write($payload);
+    my $write = $message->{deliver}->method_frame->routing_key . ': ' . $payload;
+#    print $message->{deliver}->method_frame->routing_key,
+#        ': ', $payload;
+    $self->fh->write($write);
     if (!$self->_flush_pending) {
         $self->_flush_pending(AnyEvent->timer(after => 1, cb => sub { $self->_flush_pending(undef); $self->fh->flush; }));
     }

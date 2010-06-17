@@ -1,11 +1,10 @@
 ---
+name: "CatalystX::JobServer::Web"
 Model::MessageQueue:
     class: "CatalystX::JobServer::MessageQueue"
     args:
-        user: platform
-        pass: ders8pron
         port: 5672
-        host: mq.cissme.com
+        host: localhost
         vhost: /
         channels:
             jobs:
@@ -37,20 +36,20 @@ Model::MessageQueue:
                 dispatch_to: FireHoseLog
                 results_exchange: firehose
                 results_routing_key: ""
+Model::ForkedJobRunner:
+    class: "CatalystX::JobServer::JobRunner::Forked"
+    traits:
+        - PostForkCallback
+        - JobFinishedCallback
+        - PublishSelf
+    args:
+        publish_self_every: 10
+        publish_self_to: jobs
+        jobs_registered:
+            - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
+        post_fork_callback: "warn('POST FORK')"
+        job_finished_callback: "warn('JOB FINISHED')"
 Model::FireHoseLog:
     class: "CatalystX::JobServer::LogWriter"
     args:
-        output_file: "/space/logs/rabbitmq/firehose.log"
-#Model::ForkedJobRunner:
-#    class: "CatalystX::JobServer::JobRunner::Forked"
-#    traits:
-#        - PostForkCallback
-#        - PublishSelf
-#    args:
-#        post_fork_callback: "AnyEvent::Util::close_all_fds_except(0, 1, 2); state51::Base->connect"
-#        publish_self_every: 30
-#        publish_self_to: orderxlsvalidate
-#        jobs_registered:
-#            - "state51::Job::OrderXLSValidate"
-#            - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
-
+        output_file: __path_to(firehose.log)__

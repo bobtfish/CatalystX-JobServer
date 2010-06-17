@@ -7,7 +7,6 @@ use aliased 'CatalystX::JobServer::Web';
 use Plack::Runner;
 use Coro;
 use AnyEvent;
-use Plack::Builder;
 use Plack::App::URLMap;
 use Plack::App::File;
 use Plack::App::Cascade;
@@ -15,6 +14,7 @@ use Try::Tiny;
 
 # Can $::TERMINATE->throw to exit :)
 our $TERMINATE = AnyEvent->condvar;
+our $RUNNING = AnyEvent->condvar;
 
 my $map = Plack::App::URLMap->new;
 
@@ -36,6 +36,7 @@ async {
     $runner->run($map->to_app);
 };
 
+$RUNNING->send;
 $TERMINATE->recv;
 
 1;

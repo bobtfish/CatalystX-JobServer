@@ -27,8 +27,8 @@ has mq => (
 );
 
 method BUILD ($args) {
-    my $cv = AnyEvent->condvar;
     async {
+        $::RUNNING->recv if $::RUNNING; # Wait till everything is started.
         try {
             $self->mq;
             $self->_channel_objects;
@@ -42,11 +42,9 @@ method BUILD ($args) {
 #            }
         }
         catch {
-            $cv->croak($_);
+            $::TERMINATE ? $::TERMINATE->croak($_) : die($_);
         };
-        $cv->send;
     };
-    $cv->recv;
 }
 
 has host => (
@@ -240,7 +238,7 @@ sub _build__channel_objects {
             on_consume => sub {
                 my $message = shift;
                 my $dispatch_to = $self->locate_model( $channel_data->{dispatch_to} );
-                die("Cannot find dispatch_to for $name " . $channel_data->{dispatch_to})
+                Carp::confess("Cannot find dispatch_to for $name " . $channel_data->{dispatch_to})
                     unless $dispatch_to;
                 $dispatch_to->consume_message($message, sub { $self->publish_to_channel($name, shift() ) } );
                 $self->channel_messages_consumed->{$name}++;

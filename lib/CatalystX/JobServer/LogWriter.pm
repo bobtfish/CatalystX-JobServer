@@ -52,9 +52,10 @@ has _flush => (
     clearer => '_do_flush',
     lazy => 1,
     default => sub {
+        my $self = shift;
         AnyEvent->timer(
             after => 1,
-            cb => sub { shift->_do_flush },
+            cb => sub { $self->_do_flush },
         );
     },
 );

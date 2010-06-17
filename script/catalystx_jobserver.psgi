@@ -29,11 +29,11 @@ $map->map('/static' => Plack::App::Cascade->new(
 
 $map->map('/' => sub { CatalystX::JobServer::Web->run(@_) });
 
-my $app = sub { CatalystX::JobServer::Web->run(@_) };
 my $runner = Plack::Runner->new(server => 'Corona', env => 'deployment');
 $runner->parse_options(@ARGV);
+
 async {
-    $runner->run($app);
+    $runner->run($map->to_app);
 };
 
 $RUNNING->send;

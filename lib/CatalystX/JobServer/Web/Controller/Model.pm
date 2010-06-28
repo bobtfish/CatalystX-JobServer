@@ -2,6 +2,7 @@ package CatalystX::JobServer::Web::Controller::Model;
 use CatalystX::JobServer::Moose;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use Web::Hippie;
+use AnyEvent;
 
 BEGIN { extends 'Catalyst::Controller' };
 
@@ -40,19 +41,88 @@ sub hippie : Chained('find') PathPart('_hippie') Args() {
 
     my $env = $c->req->env;
     local $env->{PATH_INFO} = $env->{PATH_INFO};
-    $c->res->body($code->($self->_hippie, $c->req->env, sub {
-        my $new_env = shift;
-    if ($new_env->{PATH_INFO} eq '/init') {
-        my $h = $new_env->{'hippie.handle'};
-        my $w; $w = AnyEvent->timer( interval => 1,
-                                         cb => sub {
-                                             $h->send_msg(
-                                                 $c->model('ForkedJobRunner')->pack
-                                             );
-                                             $w;
-                                         });
+
+    my %handlers = map {
+        $self->can("hippie_$_") ? ("/$_" => $self->can("hippie_$_")) : ()
     }
+        qw/ init error message /;
+
+    $c->res->body($code->($self->_hippie, $c->req->env, sub {
+        my $env = shift;
+        if ($handlers{$env->{PATH_INFO}}) {
+            $handlers{$env->{PATH_INFO}}->($env, $c);
+        }
     }));
+}
+
+sub hippie_init {
+    my ($env, $c) = @_;
+    my $h = $env->{'hippie.handle'};
+    my $w; $w = AnyEvent->timer(
+        interval => 1,
+        cb => sub {
+            $h->send_msg(
+                $c->model('ForkedJobRunner')->pack
+            );
+            $w;
+        }
+    );
+}
+
+#sub hippie_error {}
+#sub hippie_message {}
+
+sub observe : Chained('find') Args(0) {
+    my ($self, $c) = @_;
+
+    my $uri = $c->uri_for($self->action_for('inspect'), $c->req->captures)->path;
+    $c->res->body(q[
+    <html>
+    <head>
+    <title>Hippie demo</title>
+    <script src="/static/jquery-1.3.2.min.js"></script>
+    <script src="/static/jquery.ev.js"></script>
+    <script src="/static/DUI.js"></script>
+    <script src="/static/Stream.js"></script>
+    <script src="/static/hippie.js"></script>
+    <script src="/static/json2.js"></script>
+    <script src="/static/dump.js"></script>
+
+    <script>
+
+    function log_it(stuff) {
+      $("#log").append(stuff+'<br/>');
+    }
+    $(function() {
+      var hippie = new Hippie( document.location.host + "] . $uri . q[", 5, function() {
+                                   log_it("connected");
+                                 },
+                                 function() {
+                                   log_it("disconnected");
+                                 },
+                                 function(e) {
+                                   log_it("got message: " + dump(e));
+                                 } );
+    });
+
+
+    </script>
+    <link rel="stylesheet" href="/static/screen.css" />
+    </head>
+    <body>
+
+    <div id="content">
+
+    <div id="log">
+
+    </div>
+
+    </div>
+    </body>
+    </html>
+
+    ]);
+
 }
 
 __PACKAGE__->meta->make_immutable;

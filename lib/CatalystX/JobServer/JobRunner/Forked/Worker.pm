@@ -2,11 +2,9 @@ package CatalystX::JobServer::JobRunner::Forked::Worker;
 use CatalystX::JobServer::Moose;
 use AnyEvent;
 use AnyEvent::Handle;
-use IO::Handle;
-use AnyEvent::Util qw/fh_nonblocking/;
-$|=1;
 
 method run {
+    $|=1;
     my $buf;
     my $cv = AnyEvent->condvar;
     my $hdl = AnyEvent::Handle->new(
@@ -21,7 +19,9 @@ method run {
            my ($hdl) = @_;
            $buf .= $hdl->{rbuf};
            $hdl->{rbuf} = '';
-           while ($self->get_json_from_buffer(\$buf, sub { $self->json_object(shift) })) { 1; } # Call as many times as we have JSON
+           while ($self->get_json_from_buffer(
+               \$buf, sub { $self->json_object(shift) })
+           ) { 1; } # Call as many times as we have JSON
        },
     );
     $cv->recv;

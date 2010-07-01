@@ -37,6 +37,12 @@ sub BUILD {
     $self->_spawn_worker for (1..$n);
 }
 
+sub DEMOLISH {
+    my $self = shift;
+    # Quit all our workers
+    kill 15, $_ for keys %{ $self->workers };
+}
+
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
@@ -58,7 +64,7 @@ sub _do_run_job {
            my ($hdl) = @_;
            my $buf = $hdl->{rbuf};
            $hdl->{rbuf} = '';
-           while ($self->get_json_from_buffer(\$buf, $return_cb)) { 1; }
+           while ( $self->get_json_from_buffer(\$buf, sub { $cv->send; $return_cb->(@_); })) { 1; }
        },
     );
     #if (scalar @_) {

@@ -33,6 +33,30 @@ has _hippie => (
     default => sub { Web::Hippie->new },
 );
 
+has handlers => (
+    isa => HashRef[CodeRef],
+    lazy => 1,
+    traits => ['Hash'],
+    handles => {
+        get_handler => 'get',
+        has_handler => 'defined'
+    },
+    default => sub {
+        my $self = shift;
+        return {
+            map {
+                $self->can("hippie_$_") ? ("/$_" => $self->can("hippie_$_")) : ()
+            }
+            qw/
+                init
+                error
+                message
+                new_listener
+            /;
+        };
+    },
+);
+
 sub hippie : Chained('find') PathPart('_hippie') Args() {
     my ($self, $c, $type, $arg) = @_;
 
@@ -42,21 +66,16 @@ sub hippie : Chained('find') PathPart('_hippie') Args() {
     my $env = $c->req->env;
     local $env->{PATH_INFO} = $env->{PATH_INFO};
 
-    my %handlers = map {
-        $self->can("hippie_$_") ? ("/$_" => $self->can("hippie_$_")) : ()
-    }
-        qw/ init error message /;
-
     $c->res->body($code->($self->_hippie, $c->req->env, sub {
         my $env = shift;
-        if ($handlers{$env->{PATH_INFO}}) {
-            $handlers{$env->{PATH_INFO}}->($env, $c);
+        if ($self->has_handler($env->{PATH_INFO})) {
+            $self->get_handler($env->{PATH_INFO})->($self, $c, $env);
         }
     }));
 }
 
 sub hippie_init {
-    my ($env, $c) = @_;
+    my ($self, $c, $env) = @_;
     my $h = $env->{'hippie.handle'};
     my $w; $w = AnyEvent->timer(
         interval => 1,
@@ -71,6 +90,7 @@ sub hippie_init {
 
 #sub hippie_error {}
 #sub hippie_message {}
+#sub hippie_new_listener {}
 
 sub observe : Chained('find') Args(0) {
     my ($self, $c) = @_;

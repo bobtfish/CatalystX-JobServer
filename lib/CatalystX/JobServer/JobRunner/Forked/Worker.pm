@@ -13,7 +13,7 @@ method run {
        fh => \*STDIN,
        on_error => sub {
           my ($hdl, $fatal, $msg) = @_;
-          warn "got error $msg\n";
+          Carp::cluck "got error $msg\n";
           $hdl->destroy;
           $cv->send;
        },
@@ -21,7 +21,7 @@ method run {
            my ($hdl) = @_;
            $buf .= $hdl->{rbuf};
            $hdl->{rbuf} = '';
-           while ($self->get_json_from_buffer(\$buf)) { 1; } # Call as many times as we have JSON
+           while ($self->get_json_from_buffer(\$buf, sub { $self->json_object(shift) })) { 1; } # Call as many times as we have JSON
        },
     );
     $cv->recv;

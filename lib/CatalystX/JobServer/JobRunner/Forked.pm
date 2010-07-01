@@ -12,7 +12,6 @@ sub post_fork {
 
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
-    # What happens about many many requets..
     my ($to_r, $to_w) = portable_pipe;
     my ($from_r, $from_w) = portable_pipe;
     my $pid = fork;
@@ -30,25 +29,20 @@ sub _do_run_job {
            my ($hdl) = @_;
            my $buf = $hdl->{rbuf};
            $hdl->{rbuf} = '';
-#           warn("PARENT READ SOMETHING: $buf");
-           while ($self->get_json_from_buffer(\$buf)) { 1; }
+           while ($self->get_json_from_buffer(\$buf, $return_cb)) { 1; }
        },
     );
 
     if ($pid != 0) {
         # parent
-        close $to_r;
-        close $from_w;
-#        warn("WRITE IN PARENT");
+        close( $to_r );
+        close( $from_w );
         $to_w->syswrite("\x00" . $job . "\xff");
     }
     elsif ($pid == 0) {
         # child
-
-#        warn("IN CHILD $$");
-        close $to_w;
-        close $from_r;
-
+        close( $to_w );
+        close( $from_r );
         close( STDOUT );
 
         open( STDOUT, '>&', fileno($from_w) )
@@ -62,11 +56,6 @@ sub _do_run_job {
         }
         push (@cmd, '-MCatalystX::JobServer::JobRunner::Forked::Worker');
         push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
-        #use Data::Dumper;
-        #warn Dumper \@cmd;
-        #while (<STDIN>) {
-        #    warn("CHILD READ $_");
-        #}
         exec( @cmd );
     }
     #    if (scalar @_) {

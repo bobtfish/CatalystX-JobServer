@@ -15,6 +15,11 @@ use Test::More;
         default => sub { [] },
     );
 
+    around get_json_from_buffer => sub {
+        my ($orig, $self, $buf) = @_;
+        $self->$orig($buf, sub { $self->json_object(shift)});
+    };
+
     sub json_object {
         my ($self, $data) = @_;
         push(@{ $self->_found_jobs }, $data);

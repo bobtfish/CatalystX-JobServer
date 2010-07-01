@@ -11,9 +11,12 @@ my $jobs = CatalystX::JobServer::JobRunner::Forked->new(
 ok $jobs;
 
 my $cb_val;
-my $cv = AnyEvent->condvar;
-$jobs->_do_run_job('TEXT', sub { $cv->send; $cb_val = shift; warn $cb_val; });
-$cv->recv;
+$jobs->_do_run_job('TEXT', sub { $cb_val = shift; });
+is $cb_val, 'RET VALUE';
+
+$cb_val = '';
+
+$jobs->_do_run_job('TEXT', sub { $cb_val = shift; });
 is $cb_val, 'RET VALUE';
 
 done_testing;

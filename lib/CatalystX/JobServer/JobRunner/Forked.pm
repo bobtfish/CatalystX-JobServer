@@ -40,7 +40,7 @@ sub BUILD {
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
-    my $pid = (keys %{ $self->_workers })[0];
+    my $pid = (keys %{ $self->workers })[0];
     my $from_r = $self->read_handles->{$pid};
     my $to_w = $self->write_handles->{$pid};
     $to_w->syswrite("\x00" . $job . "\xff");

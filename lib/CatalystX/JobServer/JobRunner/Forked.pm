@@ -25,10 +25,15 @@ foreach (qw/ write read /) {
     );
 }
 
+sub BUILD {
+    my $self = shift;
+    $self->_spawn_worker;
+}
+
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
-    my $pid = $self->_spawn_worker;
+    my $pid = (keys %{ $self->_workers })[0];
     my $from_r = $self->read_handles->{$pid};
     my $to_w = $self->write_handles->{$pid};
     $to_w->syswrite("\x00" . $job . "\xff");
@@ -49,14 +54,13 @@ sub _do_run_job {
            while ($self->get_json_from_buffer(\$buf, $return_cb)) { 1; }
        },
     );
-    #    if (scalar @_) {
-    #        $self->job_finished($job, shift, $return_cb);
-    #    }
-    #    else {
-    #        warn("Job failed, returned " . $@);
-    #        $self->job_failed($job, $@, $return_cb);
-    #    }
-    #};
+    #if (scalar @_) {
+    #    $self->job_finished($job, shift, $return_cb);
+    #}
+    #else {
+    #    warn("Job failed, returned " . $@);
+    #    $self->job_failed($job, $@, $return_cb);
+    #}
     $cv->recv;
 }
 
@@ -93,7 +97,6 @@ sub _spawn_worker {
         push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
         exec( @cmd );
     }
-
 }
 
 method json_object ($json) {

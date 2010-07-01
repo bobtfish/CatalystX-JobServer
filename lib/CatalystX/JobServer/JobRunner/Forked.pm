@@ -1,7 +1,7 @@
 package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
-use MooseX::Types::Moose qw/ HashRef /;
+use MooseX::Types::Moose qw/ HashRef Int /;
 use AnyEvent::Handle;
 use namespace::autoclean;
 
@@ -10,6 +10,12 @@ with 'CatalystX::JobServer::JobRunner';
 sub post_fork {
     my ($self, $job) = @_;
 }
+
+has num_workers => (
+    isa => Int,
+    is => 'ro',
+    default => 1,
+);
 
 has workers => (
     isa => HashRef,
@@ -27,7 +33,8 @@ foreach (qw/ write read /) {
 
 sub BUILD {
     my $self = shift;
-    $self->_spawn_worker;
+    my $n = $self->num_workers;
+    $self->_spawn_worker for (1..$n);
 }
 
 sub _do_run_job {

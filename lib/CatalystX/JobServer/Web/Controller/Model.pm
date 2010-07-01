@@ -1,5 +1,6 @@
 package CatalystX::JobServer::Web::Controller::Model;
 use CatalystX::JobServer::Moose;
+use MooseX::Types::Moose qw/ HashRef CodeRef /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use Web::Hippie;
 use AnyEvent;
@@ -52,7 +53,7 @@ has handlers => (
                 error
                 message
                 new_listener
-            /;
+            /
         };
     },
 );

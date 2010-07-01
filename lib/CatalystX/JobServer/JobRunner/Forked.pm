@@ -17,14 +17,14 @@ has num_workers => (
     default => 1,
 );
 
-has workers => (
+has _workers => (
     isa => HashRef,
     is => 'ro',
     default => sub { {} },
 );
 
 foreach (qw/ write read /) {
-    has $_ . '_handles' => (
+    has '_' . $_ . '_handles' => (
         isa => HashRef,
         is => 'ro',
         default => sub { {} },
@@ -40,15 +40,15 @@ sub BUILD {
 sub DEMOLISH {
     my $self = shift;
     # Quit all our workers
-    kill 15, $_ for keys %{ $self->workers };
+    kill 15, $_ for keys %{ $self->_workers };
 }
 
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
-    my $pid = (keys %{ $self->workers })[0];
-    my $from_r = $self->read_handles->{$pid};
-    my $to_w = $self->write_handles->{$pid};
+    my $pid = (keys %{ $self->_workers })[0];
+    my $from_r = $self->_read_handles->{$pid};
+    my $to_w = $self->_write_handles->{$pid};
     $to_w->syswrite("\x00" . $job . "\xff");
 
     my $cv = AnyEvent->condvar;
@@ -86,9 +86,9 @@ sub _spawn_worker {
         # parent
         close( $to_r );
         close( $from_w );
-        $self->workers->{$pid} = 0;
-        $self->write_handles->{$pid} = $to_w;
-        $self->read_handles->{$pid} = $from_r;
+        $self->_workers->{$pid} = 0;
+        $self->_write_handles->{$pid} = $to_w;
+        $self->_read_handles->{$pid} = $from_r;
         return $pid;
     }
     elsif ($pid == 0) {

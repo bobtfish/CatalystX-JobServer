@@ -1,6 +1,7 @@
 package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
+use MooseX::Types::Moose qw/ HashRef /;
 use AnyEvent::Handle;
 use namespace::autoclean;
 
@@ -10,11 +11,27 @@ sub post_fork {
     my ($self, $job) = @_;
 }
 
+has workers => (
+    isa => HashRef,
+    is => 'ro',
+    default => sub { {} },
+);
+
+foreach (qw/ write read /) {
+    has $_ . '_handles' => (
+        isa => HashRef,
+        is => 'ro',
+        default => sub { {} },
+    );
+}
+
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
-    my ($to_r, $to_w) = portable_pipe;
-    my ($from_r, $from_w) = portable_pipe;
-    my $pid = fork;
+
+    my $pid = $self->_spawn_worker;
+    my $from_r = $self->read_handles->{$pid};
+    my $to_w = $self->write_handles->{$pid};
+    $to_w->syswrite("\x00" . $job . "\xff");
 
     my $cv = AnyEvent->condvar;
     my $hdl = AnyEvent::Handle->new(
@@ -32,12 +49,30 @@ sub _do_run_job {
            while ($self->get_json_from_buffer(\$buf, $return_cb)) { 1; }
        },
     );
+    #    if (scalar @_) {
+    #        $self->job_finished($job, shift, $return_cb);
+    #    }
+    #    else {
+    #        warn("Job failed, returned " . $@);
+    #        $self->job_failed($job, $@, $return_cb);
+    #    }
+    #};
+    $cv->recv;
+}
 
+sub _spawn_worker {
+    my ($self) = @_;
+    my ($to_r, $to_w) = portable_pipe;
+    my ($from_r, $from_w) = portable_pipe;
+    my $pid = fork;
     if ($pid != 0) {
         # parent
         close( $to_r );
         close( $from_w );
-        $to_w->syswrite("\x00" . $job . "\xff");
+        $self->workers->{$pid} = 0;
+        $self->write_handles->{$pid} = $to_w;
+        $self->read_handles->{$pid} = $from_r;
+        return $pid;
     }
     elsif ($pid == 0) {
         # child
@@ -58,15 +93,7 @@ sub _do_run_job {
         push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
         exec( @cmd );
     }
-    #    if (scalar @_) {
-    #        $self->job_finished($job, shift, $return_cb);
-    #    }
-    #    else {
-    #        warn("Job failed, returned " . $@);
-    #        $self->job_failed($job, $@, $return_cb);
-    #    }
-    #};
-    $cv->recv;
+
 }
 
 method json_object ($json) {

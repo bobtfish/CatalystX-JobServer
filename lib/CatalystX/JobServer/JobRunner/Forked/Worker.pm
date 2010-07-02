@@ -8,11 +8,7 @@ use IO::Handle;
 use IO::Select;
 
 method run {
-    my $out = IO::Handle->new;
-    unless ($out->fdopen(fileno(STDOUT), "w")) {
-       confess "Could not open a handle on STDOUT";
-    }
-    $out->autoflush(1);
+    STDOUT->autoflush(1);
     my $buf;
     my $io = IO::Handle->new;
     unless ($io->fdopen(fileno(STDIN), "r")) {
@@ -57,6 +53,7 @@ method json_object ($json) {
         exit 1;
     };
     try {
+        #warn("IN WORKER DONE");
         print "\x00" . $ret->freeze . "\xff";
     }
     catch {

@@ -61,6 +61,7 @@ sub _do_run_job {
     my $pid = (keys %{ $self->_workers })[0];
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
+    $self->_workers->{$pid} = $running;
     $to_w->syswrite("\x00" . $job->freeze . "\xff");
 
     # FIXME - This shit is gross, we should be able to spawn our workers and have
@@ -68,34 +69,6 @@ sub _do_run_job {
     #         instead of creating the handle per job (as we need to pass in $running)
     #         then destroying it at job end. Cleaning this up probably implies that
     #         jobs _don't_ need to be spawned in their own coros...
-    my $cv = AnyEvent->condvar;
-    my $hdl = AnyEvent::Handle->new(
-       fh => $from_r,
-       on_error => sub {
-          my ($hdl, $fatal, $msg) = @_;
-          warn "got error $msg\n";
-          $hdl->destroy;
-          $cv->send;
-       },
-       on_read => sub {
-           my ($hdl) = @_;
-           my $buf = $hdl->{rbuf};
-           $hdl->{rbuf} = '';
-           while ( $self->get_json_from_buffer(\$buf, sub {
-               $cv->send;
-               $self->job_finished($running, shift, $return_cb);
-            }))
-            { 1; }
-       },
-    );
-    #if (scalar @_) {
-    #    $self->job_finished($job, shift, $return_cb);
-    #}
-    #else {
-    #    warn("Job failed, returned " . $@);
-    #    $self->job_failed($job, $@, $return_cb);
-    #}
-    $cv->recv;
 }
 
 sub _spawn_worker {
@@ -110,6 +83,25 @@ sub _spawn_worker {
         $self->_workers->{$pid} = 0;
         $self->_write_handles->{$pid} = $to_w;
         $self->_read_handles->{$pid} = $from_r;
+        my $hdl = AnyEvent::Handle->new(
+           fh => $from_r,
+           on_error => sub {
+              my ($hdl, $fatal, $msg) = @_;
+              warn "got error $msg\n";
+              $hdl->destroy;
+           },
+           on_read => sub {
+               my ($hdl) = @_;
+               my $buf = $hdl->{rbuf};
+               $hdl->{rbuf} = '';
+               while ( $self->get_json_from_buffer(\$buf, sub {
+                   my $running = $self->_workers->{$pid};
+                   $self->_workers->{$pid} = 0;
+                   $self->job_finished($running, shift, $return_cb);
+                }))
+                { 1; }
+           },
+        );
         return $pid;
     }
     elsif ($pid == 0) {

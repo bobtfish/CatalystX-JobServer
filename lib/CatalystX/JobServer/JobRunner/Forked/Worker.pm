@@ -1,44 +1,49 @@
 package CatalystX::JobServer::JobRunner::Forked::Worker;
 use CatalystX::JobServer::Moose;
-use AnyEvent;
 use MooseX::Types::LoadableClass qw/ LoadableClass /;
 #use MooseX::Types::Moose qw/ ArrayRef /;
-use AnyEvent::Handle;
 use JSON;
 use Try::Tiny;
+use IO::Handle;
+use IO::Select;
 
 method run {
-    $|=1;
+    my $out = IO::Handle->new;
+    unless ($out->fdopen(fileno(STDOUT), "w")) {
+       confess "Could not open a handle on STDOUT";
+    }
+    $out->autoflush(1);
     my $buf;
-    my $cv = AnyEvent->condvar;
-    my $hdl = AnyEvent::Handle->new(
-       fh => \*STDIN,
-       on_error => sub {
-          my ($hdl, $fatal, $msg) = @_;
-          Carp::cluck "got error $msg\n";
-          $hdl->destroy;
-          $cv->send;
-       },
-       on_read => sub {
-           my ($hdl) = @_;
-           $buf .= $hdl->{rbuf};
-           $hdl->{rbuf} = '';
-           while ($self->get_json_from_buffer(
-               \$buf, sub { $self->json_object(shift) })
-           ) { 1; } # Call as many times as we have JSON
-       },
-    );
-    $cv->recv;
+    my $io = IO::Handle->new;
+    unless ($io->fdopen(fileno(STDIN), "r")) {
+       confess "Could not open a handle on STDIN";
+    }
+    $io->blocking(0);
+    my $s = IO::Select->new();
+    $s->add($io);
+    while (1) {
+        my ($ready) = $s->can_read(10);
+        next unless $ready;
+        my $this;
+        while ($ready->sysread($this, 4096)) {
+            $buf .= $this;
+            $this = '';
+            while ($self->get_json_from_buffer(
+                   \$buf, sub { $self->json_object(shift) })
+               ) { 1; } # Call as many times as we have JSON
+        }
+    }
 }
 
 method json_object ($json) {
     my ($instance, $ret);
     my $class = try {
-        #warn("GOT JOB: '$json'");
         my $data = from_json($json);
-        my $class = to_LoadableClass($data->{__CLASS__})
+        my $running_class = to_LoadableClass($data->{__CLASS__})
             or die("Coud not load class " . $data->{__CLASS__});
-        $instance = $class->unpack($data);
+        my $class = to_LoadableClass($data->{job}{__CLASS__})
+            or die("Coud not load class " . $data->{job}{__CLASS__});
+        $instance = $running_class->unpack($data);
     }
     catch {
         warn "CAUGHT EXCEPTION INFLATING: $_ dieing..";

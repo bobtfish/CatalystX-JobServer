@@ -32,14 +32,15 @@ method BUILD ($args) {
         try {
             $self->mq;
             $self->_channel_objects;
-#            for (1..10) {
-#                my $body = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze;
-#            $self->_channel_objects->{jobs}->publish(
-#                 body => $body,
-#                 exchange => 'jobs',
-#                 routing_key => '#',
-#             );
-#            }
+            require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
+            for (1..10) {
+                my $body = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze;
+            $self->_channel_objects->{jobs}->publish(
+                 body => $body,
+                 exchange => 'jobs',
+                 routing_key => '#',
+             );
+            }
         }
         catch {
             $::TERMINATE ? $::TERMINATE->croak($_) : die($_);

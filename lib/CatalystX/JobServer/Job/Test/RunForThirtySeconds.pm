@@ -12,11 +12,11 @@ has retval => (
     traits => ['Serialize'],
 );
 
-sub run {
+method run {
     my $cv = AnyEvent->condvar;
     my $timer = AnyEvent->timer(after => 30, cb => sub { $cv->send });
     $cv->recv;
-    return 303;
+    return $self;
 }
 
 __PACKAGE__->meta->make_immutable;

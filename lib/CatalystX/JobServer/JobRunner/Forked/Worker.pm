@@ -53,7 +53,7 @@ method json_object ($json) {
         exit 1;
     };
     try {
-        #warn("IN WORKER DONE");
+        warn("IN WORKER DONE");
         print "\x00" . $ret->freeze . "\xff";
     }
     catch {

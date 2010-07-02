@@ -33,7 +33,7 @@ method BUILD ($args) {
             $self->mq;
             $self->_channel_objects;
             require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
-            for (1..10) {
+            for (1..1) {
                 my $body = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze;
             $self->_channel_objects->{jobs}->publish(
                  body => $body,

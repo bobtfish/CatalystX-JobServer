@@ -49,8 +49,8 @@ sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
     my $running = CatalystX::JobServer::Job::Running->new(job => $job);
-    # FIXME:
-    #  - Jobs need to be spawned in a coro?
+    # FIXME - Concurrency > 1 entirely doesn't work, and in fact if you try to run
+    #         multiple jobs it'll all go horribly wrong maybe??:
     #  - Find a free worker (where the value is 0)
     #  - Set value to 1 before re-entering event loop.
     #  - If there are no free workers then setup a condvar and recv on it
@@ -62,14 +62,12 @@ sub _do_run_job {
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
     $self->_workers->{$pid} = $running;
+    # EWW - FIXME - We smash this once for each worker, makes no sense to be passed in here..
+    #               This only actually works entirely coincidentally, as the callbacks
+    #               (whilst different code refs) will always do the same thing, but that
+    #               entirely isn't sane to rely on..
     $self->{_cb_stash} = $return_cb;
     $to_w->syswrite("\x00" . $job->freeze . "\xff");
-
-    # FIXME - This shit is gross, we should be able to spawn our workers and have
-    #         an entirely generic handle for them (which persists forever),
-    #         instead of creating the handle per job (as we need to pass in $running)
-    #         then destroying it at job end. Cleaning this up probably implies that
-    #         jobs _don't_ need to be spawned in their own coros...
 }
 
 sub _spawn_worker {
@@ -84,6 +82,7 @@ sub _spawn_worker {
         $self->_workers->{$pid} = 0;
         $self->_write_handles->{$pid} = $to_w;
         $self->_read_handles->{$pid} = $from_r;
+        # EWW, FIXME, USE ATTRIBUTE
         $self->{__hdl}{$pid} = AnyEvent::Handle->new(
            fh => $from_r,
            on_error => sub {

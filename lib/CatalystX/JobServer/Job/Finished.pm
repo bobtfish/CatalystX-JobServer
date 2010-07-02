@@ -27,7 +27,7 @@ has running_job => (
     isa => 'CatalystX::JobServer::Job::Running',
     is => 'ro',
     required => 1,
-    traits => ['Serialize'],
+#    traits => ['Serialize'],
 );
 
 has finish_time => (

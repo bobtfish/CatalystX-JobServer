@@ -4,6 +4,8 @@ use AnyEvent::Util qw/ portable_pipe /;
 use MooseX::Types::Moose qw/ HashRef Int /;
 use AnyEvent::Handle;
 use namespace::autoclean;
+use CatalystX::JobServer::Job::Finished;
+use CatalystX::JobServer::Job::Running;
 
 with 'CatalystX::JobServer::JobRunner';
 
@@ -46,10 +48,11 @@ sub DEMOLISH {
 sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
+    my $running = CatalystX::JobServer::Job::Running->new(job => $job);
     my $pid = (keys %{ $self->_workers })[0];
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
-    $to_w->syswrite("\x00" . $job . "\xff");
+    $to_w->syswrite("\x00" . $job->freeze . "\xff");
 
     my $cv = AnyEvent->condvar;
     my $hdl = AnyEvent::Handle->new(
@@ -64,7 +67,11 @@ sub _do_run_job {
            my ($hdl) = @_;
            my $buf = $hdl->{rbuf};
            $hdl->{rbuf} = '';
-           while ( $self->get_json_from_buffer(\$buf, sub { $cv->send; $return_cb->(@_); })) { 1; }
+           while ( $self->get_json_from_buffer(\$buf, sub {
+               $cv->send;
+               $self->job_finished($running, shift, $return_cb);
+            }))
+            { 1; }
        },
     );
     #if (scalar @_) {

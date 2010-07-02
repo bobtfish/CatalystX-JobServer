@@ -18,12 +18,20 @@ my $pid = (keys %{ $jobs->_workers })[0];
 ok kill(0, $pid), 'Child PID started';
 
 my $cb_val;
-$jobs->_do_run_job(TestJob->new->freeze, sub { $cb_val = shift; });
-is $cb_val, sprintf(q{{"__CLASS__":"TestJobReturn","pid":%s}}, $pid);
+$jobs->_do_run_job(TestJob->new, sub { $cb_val = shift; });
+isa_ok $cb_val, 'CatalystX::JobServer::Job::Finished';
+isa_ok $cb_val->job, 'TestJob';
+ok $cb_val->ok;
+ok $cb_val->finish_time;
+ok $cb_val->start_time;
 
 $cb_val = '';
 
-$jobs->_do_run_job(TestJob->new->freeze, sub { $cb_val = shift; });
-is $cb_val, sprintf(q{{"__CLASS__":"TestJobReturn","pid":%s}}, $pid);
+$jobs->_do_run_job(TestJob->new, sub { $cb_val = shift; });
+isa_ok $cb_val, 'CatalystX::JobServer::Job::Finished';
+isa_ok $cb_val->job, 'TestJob';
+ok $cb_val->ok;
+ok $cb_val->finish_time;
+ok $cb_val->start_time;
 
 done_testing;

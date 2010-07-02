@@ -1,7 +1,11 @@
 package CatalystX::JobServer::JobRunner::Forked::Worker;
 use CatalystX::JobServer::Moose;
 use AnyEvent;
+use MooseX::Types::LoadableClass qw/ LoadableClass /;
+#use MooseX::Types::Moose qw/ ArrayRef /;
 use AnyEvent::Handle;
+use JSON;
+use Try::Tiny;
 
 method run {
     $|=1;
@@ -28,8 +32,32 @@ method run {
 }
 
 method json_object ($json) {
-#    warn("GOT JOB: $json");
-    print "\x00RET VALUE\xff";
+    my ($instance, $ret);
+    my $class = try {
+        #warn("GOT JOB: '$json'");
+        my $data = from_json($json);
+        my $class = to_LoadableClass($data->{__CLASS__})
+            or die("Coud not load class " . $data->{__CLASS__});
+        $instance = $class->unpack($data);
+    }
+    catch {
+        warn "CAUGHT EXCEPTION INFLATING: $_ dieing..";
+        exit 1;
+    };
+    try {
+        $ret = $instance->run;
+    }
+    catch {
+        warn "CAUGHT EXCEPTION RUNNING: $_ dieing..";
+        exit 1;
+    };
+    try {
+        print "\x00" . $ret->freeze . "\xff";
+    }
+    catch {
+        warn "CAUGHT EXCEPTION FREEZING RESPONSE: $_ dieing..";
+        exit 1;
+    };
 }
 
 with 'CatalystX::JobServer::Role::BufferWithJSON';

@@ -49,11 +49,25 @@ sub _do_run_job {
     my ($self, $job, $return_cb) = @_;
 
     my $running = CatalystX::JobServer::Job::Running->new(job => $job);
+    # FIXME:
+    #  - Jobs need to be spawned in a coro?
+    #  - Find a free worker (where the value is 0)
+    #  - Set value to 1 before re-entering event loop.
+    #  - If there are no free workers then setup a condvar and recv on it
+    #  - Every job which finishes should reset it's freeness state, then
+    #    if there is a jobs waiting convar, grab it, clear it, send on it..
+    #    (like that, so that if the next thread that runs hits max workers (again),
+    #     it will set a _new_ condvar)
     my $pid = (keys %{ $self->_workers })[0];
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
     $to_w->syswrite("\x00" . $job->freeze . "\xff");
 
+    # FIXME - This shit is gross, we should be able to spawn our workers and have
+    #         an entirely generic handle for them (which persists forever),
+    #         instead of creating the handle per job (as we need to pass in $running)
+    #         then destroying it at job end. Cleaning this up probably implies that
+    #         jobs _don't_ need to be spawned in their own coros...
     my $cv = AnyEvent->condvar;
     my $hdl = AnyEvent::Handle->new(
        fh => $from_r,

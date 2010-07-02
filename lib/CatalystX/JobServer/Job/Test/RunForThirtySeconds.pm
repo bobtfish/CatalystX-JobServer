@@ -14,7 +14,7 @@ has retval => (
 
 method run {
     my $cv = AnyEvent->condvar;
-    my $timer = AnyEvent->timer(after => 30, cb => sub { $cv->send });
+    my $timer = AnyEvent->timer(after => 3, cb => sub { $cv->send });
     $cv->recv;
     return $self;
 }

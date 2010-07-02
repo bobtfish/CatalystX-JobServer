@@ -62,6 +62,7 @@ sub _do_run_job {
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
     $self->_workers->{$pid} = $running;
+    $self->{_cb_stash} = $return_cb;
     $to_w->syswrite("\x00" . $job->freeze . "\xff");
 
     # FIXME - This shit is gross, we should be able to spawn our workers and have
@@ -83,7 +84,7 @@ sub _spawn_worker {
         $self->_workers->{$pid} = 0;
         $self->_write_handles->{$pid} = $to_w;
         $self->_read_handles->{$pid} = $from_r;
-        my $hdl = AnyEvent::Handle->new(
+        $self->{__hdl}{$pid} = AnyEvent::Handle->new(
            fh => $from_r,
            on_error => sub {
               my ($hdl, $fatal, $msg) = @_;
@@ -94,10 +95,12 @@ sub _spawn_worker {
                my ($hdl) = @_;
                my $buf = $hdl->{rbuf};
                $hdl->{rbuf} = '';
+               warn("PARENT HANDLE DID READ");
                while ( $self->get_json_from_buffer(\$buf, sub {
                    my $running = $self->_workers->{$pid};
                    $self->_workers->{$pid} = 0;
-                   $self->job_finished($running, shift, $return_cb);
+                   warn("GOT FINISHED JOB");
+                   $self->job_finished($running, shift, $self->{_cb_stash});
                 }))
                 { 1; }
            },

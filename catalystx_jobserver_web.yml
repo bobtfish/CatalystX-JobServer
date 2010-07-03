@@ -47,8 +47,8 @@ Model::ForkedJobRunner:
         publish_self_to: jobs
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
-        post_fork_callback: "warn('POST FORK')"
         job_finished_callback: "warn('JOB FINISHED')"
+        debug_messages_consumed: "1"
 Model::FireHoseLog:
     class: "CatalystX::JobServer::LogWriter"
     args:

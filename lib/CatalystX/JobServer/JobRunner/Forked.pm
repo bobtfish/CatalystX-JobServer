@@ -9,20 +9,20 @@ use CatalystX::JobServer::Job::Running;
 
 with 'CatalystX::JobServer::JobRunner';
 
-sub post_fork {
-    my ($self, $job) = @_;
-}
-
 has num_workers => (
     isa => Int,
     is => 'ro',
-    default => 1,
+    default => 5,
 );
 
 has _workers => (
     isa => HashRef,
     is => 'ro',
     default => sub { {} },
+);
+
+has _hit_max => (
+    is => 'rw',
 );
 
 foreach (qw/ write read /) {
@@ -45,19 +45,31 @@ sub DEMOLISH {
     kill 15, $_ for keys %{ $self->_workers };
 }
 
+sub _first_free_worker {
+    my ($self) = @_;
+    (grep { ! $self->_workers->{$_} } keys %{ $self->_workers })[0];
+}
+
 sub _do_run_job {
     my ($self, $job) = @_;
 
-    # FIXME - Concurrency > 1 entirely doesn't work, and in fact if you try to run
-    #         multiple jobs it'll all go horribly wrong maybe??:
-    #  - Find a free worker (where the value is 0)
-    #  - Set value to 1 before re-entering event loop.
+    # This is fairly subtle, we need to block if we have too many jobs.
+    # Here is how it works:
+    #  - Find a free worker (where the value for the PID is undef)
+    #  - Set value to true before re-entering event loop (so worker PID is claimed).
     #  - If there are no free workers then setup a condvar and recv on it
-    #  - Every job which finishes should reset it's freeness state, then
-    #    if there is a jobs waiting convar, grab it, clear it, send on it..
+    #  - Every job which finishes should reset it's freeness state (before the event loop),
+    #    then if there is a jobs waiting convar, grab it, clear it, send on it..
     #    (like that, so that if the next thread that runs hits max workers (again),
     #     it will set a _new_ condvar)
-    my $pid = (keys %{ $self->_workers })[0];
+    my $pid;
+    do {
+        $pid = $self->_first_free_worker;
+        if (!$pid) {
+            $self->_hit_max(AnyEvent->condvar);
+            $self->_hit_max->recv;
+        }
+    } while (!$pid);
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
     $self->_workers->{$pid} = $job;
@@ -93,6 +105,10 @@ sub _spawn_worker {
                while ( $self->get_json_from_buffer(\$buf, sub {
                    my $running = $self->_workers->{$pid};
                    $self->_workers->{$pid} = 0;
+                   if (my $cv = $self->_hit_max) {
+                       $self->_hit_max(undef);
+                       $cv->send;
+                   }
 #                   warn("GOT FINISHED JOB " . Data::Dumper::Dumper($running));
                    $self->job_finished($running, shift);
                 }))

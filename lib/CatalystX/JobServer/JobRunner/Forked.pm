@@ -46,9 +46,8 @@ sub DEMOLISH {
 }
 
 sub _do_run_job {
-    my ($self, $job, $return_cb) = @_;
+    my ($self, $job) = @_;
 
-    my $running = CatalystX::JobServer::Job::Running->new(job => $job);
     # FIXME - Concurrency > 1 entirely doesn't work, and in fact if you try to run
     #         multiple jobs it'll all go horribly wrong maybe??:
     #  - Find a free worker (where the value is 0)
@@ -61,13 +60,9 @@ sub _do_run_job {
     my $pid = (keys %{ $self->_workers })[0];
     my $from_r = $self->_read_handles->{$pid};
     my $to_w = $self->_write_handles->{$pid};
-    $self->_workers->{$pid} = $running;
-    # EWW - FIXME - We smash this once for each worker, makes no sense to be passed in here..
-    #               This only actually works entirely coincidentally, as the callbacks
-    #               (whilst different code refs) will always do the same thing, but that
-    #               entirely isn't sane to rely on..
-    $self->{_cb_stash} = $return_cb;
-    $to_w->syswrite("\x00" . $job->freeze . "\xff");
+    $self->_workers->{$pid} = $job;
+#    warn Data::Dumper::Dumper($job);
+    $to_w->syswrite("\x00" . $job->job->freeze . "\xff");
 }
 
 sub _spawn_worker {
@@ -94,12 +89,12 @@ sub _spawn_worker {
                my ($hdl) = @_;
                my $buf = $hdl->{rbuf};
                $hdl->{rbuf} = '';
-               warn("PARENT HANDLE DID READ");
+#               warn("PARENT HANDLE DID READ");
                while ( $self->get_json_from_buffer(\$buf, sub {
                    my $running = $self->_workers->{$pid};
                    $self->_workers->{$pid} = 0;
-                   warn("GOT FINISHED JOB");
-                   $self->job_finished($running, shift, $self->{_cb_stash});
+#                   warn("GOT FINISHED JOB " . Data::Dumper::Dumper($running));
+                   $self->job_finished($running, shift);
                 }))
                 { 1; }
            },

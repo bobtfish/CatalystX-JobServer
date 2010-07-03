@@ -13,10 +13,10 @@ sub _do_run_job {
         my $ret;
         try { $ret = $job->run }
         catch {
-            $self->job_failed($job, $_, $return_cb);
+            $self->job_failed($job, $_);
             return;
         };
-        $self->job_finished($job, $ret, $return_cb);
+        $self->job_finished($job, $ret);
         return;
     };
 }

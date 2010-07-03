@@ -37,8 +37,6 @@ method json_object ($json) {
         my $data = from_json($json);
         my $running_class = to_LoadableClass($data->{__CLASS__})
             or die("Coud not load class " . $data->{__CLASS__});
-        my $class = to_LoadableClass($data->{job}{__CLASS__})
-            or die("Coud not load class " . $data->{job}{__CLASS__});
         $instance = $running_class->unpack($data);
     }
     catch {
@@ -53,7 +51,7 @@ method json_object ($json) {
         exit 1;
     };
     try {
-        warn("IN WORKER DONE");
+#        warn("IN WORKER DONE");
         print "\x00" . $ret->freeze . "\xff";
     }
     catch {

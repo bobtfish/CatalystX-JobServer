@@ -1,6 +1,6 @@
 package CatalystX::JobServer::Job::Running;
 use CatalystX::JobServer::Moose;
-use MooseX::Types::Moose qw/ Object /;
+use MooseX::Types::Moose qw/ Object CodeRef /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use DateTime;
 use namespace::autoclean;
@@ -22,6 +22,12 @@ has job => (
     required => 1,
     traits => ['Serialize'],
     handles => ['run'],
+);
+
+has return_cb => (
+    isa => CodeRef,
+    is => 'ro',
+    required => 1,
 );
 
 __PACKAGE__->meta->make_immutable;

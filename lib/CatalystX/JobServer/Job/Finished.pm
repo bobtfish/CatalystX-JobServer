@@ -16,6 +16,11 @@ around BUILDARGS => sub {
     return $args;
 };
 
+has '+return_cb' => (
+    lazy => 1,
+    default => sub { shift->running_job->return_cb },
+);
+
 has ok => (
     isa => Bool,
     is => 'ro',
@@ -38,5 +43,7 @@ has finish_time => (
     default => sub { DateTime->now },
     traits => ['Serialize']
 );
+
+method finalize { $self->return_cb->($self) }
 
 __PACKAGE__->meta->make_immutable;

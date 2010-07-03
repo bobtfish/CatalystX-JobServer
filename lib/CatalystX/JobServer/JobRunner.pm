@@ -6,6 +6,7 @@ use MooseX::Types::Set::Object;
 use aliased 'CatalystX::JobServer::Job::Running';
 use aliased 'CatalystX::JobServer::Job::Finished';
 use namespace::autoclean;
+use Data::Dumper;
 
 with 'CatalystX::JobServer::Role::Storage';
 
@@ -57,21 +58,23 @@ sub act_on_message {
 }
 
 sub job_finished {
-    my ($self, $job, $output, $return_cb) = @_;
+    my ($self, $job, $output) = @_;
     $self->_remove_running($job);
-    $return_cb->(Finished->new(job => $job));
+    Finished->new(job => $job)->finalize;
 }
 
 sub job_failed {
-    my ($self, $job, $error, $return_cb) = @_;
-    $return_cb->(Finished->new(job => $job, ok => 0));
+    my ($self, $job, $error) = @_;
+    Finished->new(job => $job, ok => 0)->finalize;
 }
 
 sub run_job {
     my ($self, $job, $return_cb) = @_;
-    $job = Running->new(job => $job);
-    $self->_add_running($job);
-    $self->_do_run_job($job, $return_cb);
+    Carp::confess("No return_cb") unless $return_cb;
+    my $running_job = Running->new(job => $job, return_cb => $return_cb);
+    $self->_add_running($running_job);
+#    warn("do_run_job " . Dumper ($running_job));
+    $self->_do_run_job($running_job);
 }
 
 requires '_do_run_job';

@@ -13,6 +13,7 @@ has num_workers => (
     isa => Int,
     is => 'ro',
     default => 5,
+    traits => ['Serialize'],
 );
 
 has _workers => (

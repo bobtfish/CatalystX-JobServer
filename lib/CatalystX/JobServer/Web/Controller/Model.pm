@@ -96,7 +96,9 @@ sub hippie_init {
 sub observe : Chained('find') Args(0) {
     my ($self, $c) = @_;
 
-    my $uri = $c->uri_for($self->action_for('inspect'), $c->req->captures)->path;
+    my $path = $c->uri_for($self->action_for('inspect'), $c->req->captures)->path;
+    $path =~ s{/$}{};
+
     $c->res->body(q[
     <html>
     <head>
@@ -115,7 +117,7 @@ sub observe : Chained('find') Args(0) {
       $("#log").append(stuff+'<br/>');
     }
     $(function() {
-      var hippie = new Hippie( document.location.host + "] . $uri . q[", 5, function() {
+      var hippie = new Hippie( document.location.host, 5, function() {
                                    log_it("connected");
                                  },
                                  function() {
@@ -123,7 +125,8 @@ sub observe : Chained('find') Args(0) {
                                  },
                                  function(e) {
                                    log_it("got message: " + dump(e));
-                                 } );
+                                 },
+                                 "] . $path . q[" );
     });
 
 

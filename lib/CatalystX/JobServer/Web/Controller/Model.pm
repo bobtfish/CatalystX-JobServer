@@ -21,7 +21,7 @@ sub inspect : Chained('find') PathPart('') Args(0) {
     my ($self, $c) = @_;
     my $component = $c->stash->{component} or confess("Cannot find ->stash->{component}");
     if ($component->can('pack') && $component->can('clone')) {
-        $c->stash(data => $component->clone);
+        $c->stash(data => $component);
     }
     else {
         $c->detach('/error404');

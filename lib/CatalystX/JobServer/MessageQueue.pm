@@ -3,7 +3,7 @@ use CatalystX::JobServer::Moose;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::Moose qw/ Int Bool HashRef ArrayRef Str /;
 use Try::Tiny;
-use MooseX::Types::Structured qw/ Dict /;
+use MooseX::Types::Structured qw/ Dict Optional /;
 use AnyEvent;
 use Coro;
 use Carp qw/ croak confess /;
@@ -32,15 +32,15 @@ method BUILD ($args) {
         try {
             $self->mq;
             $self->_channel_objects;
-            require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
-            for (1..10) {
-                my $body = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze;
-            $self->_channel_objects->{jobs}->publish(
-                 body => $body,
-                 exchange => 'jobs',
-                 routing_key => '#',
-             );
-            }
+#            require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
+#            for (1..10) {
+#                my $body = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(retval => rand(808))->freeze;
+#            $self->_channel_objects->{jobs}->publish(
+#                 body => $body,
+#                 exchange => 'jobs',
+#                 routing_key => '#',
+#             );
+#            }
         }
         catch {
             $::TERMINATE ? $::TERMINATE->croak($_) : die($_);
@@ -116,17 +116,17 @@ method _build_mq {
 has channels => (
     isa => HashRef[Dict[
         exchanges => ArrayRef[HashRef],
-        queues => ArrayRef[Dict[
+        queues => Optional[ArrayRef[Dict[
             queue => NonEmptySimpleStr,
             durable => Bool,
             bind => Dict[
                 exchange => NonEmptySimpleStr,
                 routing_key => Str,
             ],
-        ]],
-        dispatch_to => NonEmptySimpleStr,
-        results_exchange => NonEmptySimpleStr,
-        results_routing_key => Str,
+        ]]],
+        dispatch_to => Optional[NonEmptySimpleStr],
+        results_exchange => Optional[NonEmptySimpleStr],
+        results_routing_key => Optional[Str],
     ]],
     is => 'ro',
     required => 1,
@@ -212,12 +212,13 @@ sub _build__channel_objects {
       : do { $build_channel_objects_lock = AnyEvent->condvar };
     %channel_objects = ();
     foreach my $name (keys %{$self->channels}) {
+        #warn("Building channel named $name");
         my $channel_data = $self->channels->{$name};
         my $channel = $self->mq->open_channel;
         $channel_objects{$name} = $channel;
         $self->_inc_no_of_channels_registered;
         $self->_build_exchanges_for_channel($channel, $channel_data->{exchanges});
-        $self->_build_queues_for_channel($channel, $channel_data->{queues});
+        my $have_queues = $self->_build_queues_for_channel($channel, $channel_data->{queues});
         #warn("GOT DISPATCH TO " . $channel_data->{dispatch_to});
         my $code = CatalystX::JobServer::Web->can('model');
         # FIXME - For tests
@@ -225,7 +226,7 @@ sub _build__channel_objects {
         my $publisher = $channel_data->{results_exchange}
             ? sub {
                 my $body = shift;
-                warn("Publishing return message $body to ". $channel_data->{results_exchange});
+                #warn("Publishing return message $body to ". $channel_data->{results_exchange});
                 $channel->publish(
                     body => $body,
                     exchange => $channel_data->{results_exchange},
@@ -244,7 +245,8 @@ sub _build__channel_objects {
                 $dispatch_to->consume_message($message, sub { $self->publish_to_channel($name, shift() ) } );
                 $self->channel_messages_consumed->{$name}++;
             },
-        );
+        )
+            if $have_queues;
     }
     $build_channel_objects_lock->send;
     return {%channel_objects};
@@ -253,6 +255,7 @@ sub _build__channel_objects {
 sub _build_exchanges_for_channel {
     my ($self, $channel, $exchanges) = @_;
     foreach my $exchange ( @$exchanges ) {
+        #warn("Building exchange " . $exchange->{exchange});
         my $exch_frame = $channel->declare_exchange(
             %$exchange
         )->method_frame;
@@ -264,8 +267,11 @@ sub _build_exchanges_for_channel {
 
 sub _build_queues_for_channel {
     my ($self, $channel, $queues) = @_;
+    my $count = 0;
     foreach my $queue ( @$queues ) {
+        $count++;
         my $binding = delete $queue->{bind};
+        #warn("Building queue " . $queue->{queue});
         my $queue_frame = $channel->declare_queue(
            %$queue
        )->method_frame;
@@ -273,11 +279,13 @@ sub _build_queues_for_channel {
        $self->_inc_no_of_queues_registered;
        $self->_build_binding_for_queue($channel, $queue_frame->queue, $binding);
     }
+    return $count;
 }
-
+use Data::Dumper;
 sub _build_binding_for_queue {
     my ($self, $channel, $queue_name, $binding) = @_;
     local $binding->{queue} = $queue_name;
+    #warn("Binding " . Dumper($binding));
     my $bind_frame = $channel->bind_queue(
        %$binding,
     );

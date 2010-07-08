@@ -43,14 +43,11 @@ has jobs_registered => (
     traits => ['Serialize'],
 );
 
-sub BUILD {
-    my $self = shift;
-    foreach my $job (@{ $self->jobs_registered }) { # Horrible
-        Class::MOP::load_class($job);
-    }
+#with 'CatalystX::JobServer::Role::QueueConsumer::LogMessageStructured';
+sub consume_message {
+    my ($self, $message, $publisher) = @_;
+    $self->act_on_message($message->{body}->payload, $publisher);
 }
-
-with 'CatalystX::JobServer::Role::QueueConsumer::LogMessageStructured';
 
 sub act_on_message {
     my ($self, $message, $publisher) = @_;

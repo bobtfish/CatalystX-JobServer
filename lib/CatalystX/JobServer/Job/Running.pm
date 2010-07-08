@@ -1,6 +1,6 @@
 package CatalystX::JobServer::Job::Running;
 use CatalystX::JobServer::Moose;
-use MooseX::Types::Moose qw/ Object CodeRef /;
+use MooseX::Types::Moose qw/ Str CodeRef /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use DateTime;
 use namespace::autoclean;
@@ -17,11 +17,10 @@ has start_time => (
 );
 
 has job => (
-    isa => Object,
+    isa => Str,
     is => 'ro',
     required => 1,
     traits => ['Serialize'],
-    handles => ['run'],
 );
 
 has return_cb => (

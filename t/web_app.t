@@ -8,8 +8,8 @@ use Catalyst::Engine::HTTP;
 CatalystX::JobServer::Web->engine(Catalyst::Engine::HTTP->new);
 
 ok( request('/')->is_success, 'Request should succeed' );
-ok( request('/model/ForkedJobRunner/inspect')->is_success );
-ok( request('/model/ComponentMap/inspect')->is_success );
-ok( request('/model/MessageQueue/inspect')->is_success );
+ok( request('/model/ForkedJobRunner')->is_success );
+ok( request('/model/ComponentMap')->is_success );
+ok( request('/model/MessageQueue')->is_success );
 
 done_testing();

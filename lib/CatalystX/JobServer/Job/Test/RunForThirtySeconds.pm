@@ -5,7 +5,7 @@ use MooseX::Types::Moose qw/ Num /;
 
 with 'CatalystX::JobServer::Role::Storage';
 
-has retval => (
+has val => (
     isa => Num,
     is => 'ro',
     required => 1,
@@ -13,9 +13,7 @@ has retval => (
 );
 
 method run {
-    my $cv = AnyEvent->condvar;
-    my $timer = AnyEvent->timer(after => 3, cb => sub { $cv->send });
-    $cv->recv;
+    sleep 30;
     return $self;
 }
 

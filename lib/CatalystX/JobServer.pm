@@ -8,7 +8,9 @@ our $VERSION = '0.000001';
 
 =head1 NAME
 
-CatalystX::JobServer
+CatalystX::JobServer - Multi protocol asynchronous job server
+
+=head1 DESCRIPTION
 
 =head1 SEE ALSO
 

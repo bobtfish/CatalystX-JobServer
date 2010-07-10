@@ -4,6 +4,7 @@ use MooseX::Types::Moose qw/ HashRef CodeRef /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use Web::Hippie;
 use AnyEvent;
+use namespace::autoclean;
 
 BEGIN { extends 'Catalyst::Controller' };
 

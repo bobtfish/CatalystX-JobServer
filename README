@@ -1,8 +1,52 @@
 NAME
-    CatalystX::JobServer
+    CatalystX::JobServer - Multi protocol asynchronous job server
+
+SYNOPSIS
+    CatalystX::JobServer is an AMQP and JSON based job and event server.
+
+    You configure sets of AMQP exchanges, queues and bindings, and set these
+    up to dispatch recieved messages into the application. What services are
+    run by the application (and where replies are sent) is also configured.
+
+    Various services (such as, for example, a job worker pools, or a message
+    writer which writes recieved messages to disk) can be setup within your
+    instance (again, fully from config).
+
+    Traits can be applied to these services to add additional functionality
+    (for example serializing the service state and sending it to a queue
+    regularly).
+
+    The application also listens on a port for HTTP requests, and allows you
+    to browse the application state, or (using Web::Hippie) get a persistent
+    pipe which regularly updates you with the state.
+
+QUICK START
+        Install RabbitMQ on your machine.
+
+        Start RabbitMQ with the default user/password.
+
+        Install the dependencies listed in Makefile.PL (note that Plack and Web::Hippie need to
+        come from my github forks right now).
+
+        Run CATALYST_DEBUG=1 ./script/catalystx_jobserver.psgi
+
+        Point your browser at http://localhost:5000
+
+        Look at catalystx_jobserver_web.yml and start playing.
+
+DESCRIPTION
+TODO
+    Documentation - Please yell at me with questions and suggest places
+    where the documentation isn't clear, I know this needs work ;)
+
+    Fireing jobs from the web - One of the main applications I want to do
+    with this is to be able to set off a job with an AMQP message from one
+    web hit, then get the status as the job is running using Hippie. This is
+    currently not implemented (but will be soon).
 
 SEE ALSO
-    CatalystX::JobServer::Web, Net::RabbitFoot.
+    CatalystX::JobServer::Web, Net::RabbitFoot,
+    <http://www.slideshare.net/bobtfish/real-time-systemperformancemon>.
 
 AUTHOR
     Tomas Doran

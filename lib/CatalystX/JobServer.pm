@@ -55,7 +55,7 @@ job is running using Hippie. This is currently not implemented (but will be soon
 
 =head1 SEE ALSO
 
-L<CatalystX::JobServer::Web>, L<Net::RabbitFoot>.
+L<CatalystX::JobServer::Web>, L<Net::RabbitFoot>, L<http://www.slideshare.net/bobtfish/real-time-systemperformancemon>.
 
 =head1 AUTHOR
 

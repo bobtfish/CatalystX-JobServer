@@ -11,7 +11,7 @@ CatalystX::JobServer::Web::Controller::Root - Root Controller for CatalystX::Job
 
 =head1 DESCRIPTION
 
-[enter your description here]
+Provides web app wide actions such as the base chain, the index page, the default 404 handler etc.
 
 =head1 METHODS
 

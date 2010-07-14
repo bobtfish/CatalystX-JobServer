@@ -19,3 +19,9 @@ sub _apply_instance_roles {
 }
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::Web::Plugin::AddRolesToComponents - Undocumented, to die..
+
+=cut

@@ -22,3 +22,9 @@ sub build_per_context_instance {
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::ComponentMap - Adaptor model class for CatalystX::JobServer::ComponentMap
+
+=cut

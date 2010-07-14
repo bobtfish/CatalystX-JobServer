@@ -49,3 +49,9 @@ after BUILD => sub {
 };
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::TraitFor::Model::PublishSelf - Publishes the serialization of another class to a queue at regular intervals.
+
+=cut

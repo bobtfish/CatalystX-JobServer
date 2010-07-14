@@ -86,3 +86,26 @@ method consume_message ($message, $publisher) {
 }
 
 __PACKAGE__->meta->make_immutable;
+1;
+
+=head1 NAME
+
+CatalystX::JobServer::LogWriter - Class to listen for a queue and write the output to a file.
+
+=head1 SYNOPSIS
+
+    Model::FireHoseLog:
+        class: "CatalystX::JobServer::LogWriter"
+        args:
+            output_file: __path_to(firehose.log)__
+            
+=head1 DESCRIPTION
+
+Logs any messages dispatched to it to a file. Ensures that the file a sync'd to disk once a second
+(to ensure that messages are flushed regularly, but without forcing an fsync per line).
+
+Any process with one (or more) of these classes will close and re-open the output log file handles
+on SIGHUP. This can (and should) be used after log rotation to force the process to re-open it's log
+files (and close those which have been rotated away).
+
+=cut

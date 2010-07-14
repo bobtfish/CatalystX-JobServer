@@ -23,3 +23,24 @@ sub _setup_dynamic_models {
 }
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::Web::Plugin::ModelsFromConfig - Plugin role to build application components from config.
+
+=head1 SYNOPSIS
+
+    use Catalyst qw/
+        +CatalystX::JobServer::Web::Plugin::ModelsFromConfig
+    /;
+
+=head1 DESCRIPTION
+
+Goes through the application config. Any config keys for models which aren't registered after L<Catalyst/setup_components>
+are injected as instances of L<CatalystX::JobServer::Web::ModelBase::Adaptor> using L<CatalystX::InjectComponent>.
+
+=head1 SEE ALSO
+
+L<CatalystX::JobServer::Web::ModelBase::Adaptor>, L<CatalystX::InjectComponent>.
+
+=cut

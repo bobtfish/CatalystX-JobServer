@@ -147,3 +147,14 @@ with 'CatalystX::JobServer::Role::BufferWithJSON';
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::JobRunner::Forked - Class providing persistent perl job worker processes.
+
+=head1 DESCRIPTION
+
+Maintains a pool of L<CatalystX::JobServer::JobRunner::Forked::Worker> processes, which are sent
+jobs and which return results.
+
+=cut

@@ -55,19 +55,23 @@ __PACKAGE__->setup_engine('PSGI');
 
 =head1 NAME
 
-CatalystX::JobServer::Web - Catalyst based application
+CatalystX::JobServer::Web - Catalyst application part of CatalystX::JobServer
 
 =head1 SYNOPSIS
 
-    script/catalystx_jobserver_web_server.pl
+    script/catalystx_jobserver.psgi
 
 =head1 DESCRIPTION
 
-[enter your description here]
+The top level of the web application. Loads L<Catalyst> and L<Catalyst::Engine::PSGI>.
+
+Loads the config from the config file, and uses L<CatalystX::JobServer::Web::Plugin::ModelsFromConfig>
+to load all the application components and L<CatalystX::JobServer::Web::Plugin::AddRolesToComponents>
+to massage them.
 
 =head1 SEE ALSO
 
-L<CatalystX::JobServer::Web::Controller::Root>, L<Catalyst>
+L<CatalystX::JobServer>.
 
 =head1 AUTHOR
 

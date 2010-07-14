@@ -60,3 +60,24 @@ sub COMPONENT {
 }
 
 __PACKAGE__->meta->make_immutable;
+
+=head1 NAME
+
+CatalystX::JobServer::Web::ModelBase::Adaptor - Adapts generic classes to be Catalyst models (with traits)
+
+=head1 DESCRIPTION
+
+This class takes a component configuration and uses the C<class> and C<traits> arguments (merged like L<MooseX::Traits::Pluggable>),
+and creates an instance passing the arguments from C<args>, like L<Catalyst::Model::Adaptor>.
+
+Also passes a couple of custom parameters which can be used by components which want them:
+
+=over
+
+=item publish_message_callback
+
+=item model_locator_callback
+
+=back
+
+=cut

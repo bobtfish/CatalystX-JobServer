@@ -302,3 +302,55 @@ sub DEMOLISH {
 }
 
 __PACKAGE__->meta->make_immutable;
+1;
+
+=head1 NAME
+
+CatalystX::JobServer::MessageQueue - Abstraction over RabbitMQ for CatalystX::JobServer
+
+=head1 SYNOPSIS
+
+    Model::MessageQueue:
+        class: "CatalystX::JobServer::MessageQueue"
+        args:
+            port: 5672
+            host: localhost
+            vhost: /
+            channels:
+                jobs:
+                    exchanges:
+                        - type: topic
+                          durable: 1
+                          exchange: jobs
+                    queues:
+                        - queue: jobs_queue
+                          durable: 1
+                          bind:
+                            exchange: jobs
+                            routing_key: "#"
+                    dispatch_to: ForkedJobRunner
+                    results_exchange: firehose
+                    results_routing_key: ""
+                firehose:
+                    exchanges:
+                        - type: topic
+                          durable: 1
+                          exchange: firehose
+                    queues:
+                        - queue: firehose_log
+                          durable: 1
+                          bind:
+                              exchange: firehose
+                              routing_key: "#"
+                    dispatch_to: FireHoseLog
+                    results_exchange: firehose
+                    results_routing_key: ""
+
+=head1 DESCRIPTION
+
+Creates the specified channels, exchanges, queues and bindings in RabbitMQ.
+
+Messages recieved in each channel wil be dispatched into other services within the application
+and results are published to RabbitMQ.
+
+=cut

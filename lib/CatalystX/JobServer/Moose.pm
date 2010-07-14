@@ -31,3 +31,19 @@ sub do_import {
 }
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::Moose - Moose, the way I like it.
+
+=head1 SYNOPSIS
+
+    package CatalystX::JobServer::SomeClass;
+    use CatalystX::JobServer::Moose;
+
+=head1 DESCRIPTION
+
+Applies L<Moose>, L<Moose::Util::TypeConstraints>, L<Method::Signatures::Simple>, L<Moose::Autobox>
+and L<namespace::autoclean> to the class using it.
+
+=cut

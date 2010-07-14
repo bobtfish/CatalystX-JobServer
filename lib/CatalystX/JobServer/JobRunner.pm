@@ -77,3 +77,14 @@ sub run_job {
 requires '_do_run_job';
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::JobRunner - Role providing some of the implementation for a job worker.
+
+=head1 SYNOPSIS
+
+See L<CatalystX::JobServer::JobRunner::Forked>.
+
+=cut
+

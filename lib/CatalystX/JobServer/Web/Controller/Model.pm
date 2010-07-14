@@ -152,3 +152,9 @@ sub observe : Chained('find') Args(0) {
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::Web::Controller::Model - Provides introspection of the models registered in the application via HTTP.
+
+=cut

@@ -64,3 +64,17 @@ with 'CatalystX::JobServer::Role::BufferWithJSON';
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::JobRunner::Forked::Worker - Class providing a worker which listens on STDIN and replies on STDOUT.
+
+=head1 DESCRIPTION
+
+When run enters an infinte loop. Will wait on STDIN for a JSON message, unserialize it,
+load the class as defined by the top level C<__CLASS__> element (ala L<MooseX::Storage>), call
+C<< $class->unpack($data) >>, followed by C<< $class->run >>.
+
+Expects this to return an object which can be serialized by calling C<< $return->freeze >>
+
+=cut

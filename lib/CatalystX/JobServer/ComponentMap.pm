@@ -52,3 +52,33 @@ sub pack {
 sub unpack { Carp::confess("Unsupported") }
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::ComponentMap - Map to the configured components in the application.
+
+=head1 SYNOPSIS
+
+    You see an instance of this class serialized when you hit L<http://localhost:5000/>.
+    
+    E.g.
+    {
+       "ComponentMap" : {
+          "routing_key" : ":model:inspect:ComponentMap",
+          "uri" : "http://localhost:5000/model/ComponentMap"
+       },
+       "FireHoseLog" : {
+          "routing_key" : ":model:inspect:FireHoseLog",
+          "uri" : "http://localhost:5000/model/FireHoseLog"
+       },
+       "MessageQueue" : {
+          "routing_key" : ":model:inspect:MessageQueue",
+          "uri" : "http://localhost:5000/model/MessageQueue"
+       },
+       "ForkedJobRunner" : {
+          "routing_key" : ":model:inspect:ForkedJobRunner",
+          "uri" : "http://localhost:5000/model/ForkedJobRunner"
+       }
+    }
+
+=cut

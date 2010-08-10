@@ -8,6 +8,7 @@ use Module::Install::AuthorTests;
 name 'CatalystX-JobServer';
 all_from 'lib/CatalystX/JobServer.pm';
 
+requires 'Method::Signatures::Simple';
 requires 'Catalyst::Runtime' => '5.80022';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Moose';

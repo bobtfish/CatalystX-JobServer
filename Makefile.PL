@@ -18,7 +18,7 @@ requires 'Catalyst::Engine::PSGI'; # At least bf871c7
 requires 'Corona' => '0.1004';
 requires 'Coro';
 requires 'Net::RabbitFoot';
-requires 'Web::Hippie'; # At least 404befa
+requires 'Web::Hippie' => '0.32'; # At least 404befa
 requires 'Log::Message::Structured';
 requires 'MooseX::Types::ISO8601';
 requires 'MooseX::Clone';

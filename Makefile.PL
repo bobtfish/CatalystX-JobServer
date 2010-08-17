@@ -51,6 +51,6 @@ if ($Module::Install::AUTHOR) {
         and die $!;
 }
 
-install_script glob('script/*.pl');
+install_script (glob('script/*.pl'), glob('script/*.psgi'));
 auto_install;
 WriteAll;

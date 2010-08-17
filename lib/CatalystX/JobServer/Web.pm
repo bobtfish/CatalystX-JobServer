@@ -53,6 +53,13 @@ __PACKAGE__->config(
 __PACKAGE__->setup();
 __PACKAGE__->setup_engine('PSGI');
 
+sub get_config_path {
+    my $c = shift;
+    my ($path, $extension) = $c->next::method(@_);
+    $path =~ s{Web/}{};         # Strip Web/ out of the path, config gets
+    return ($path, $extension); # put in the directory above..
+}
+
 =head1 NAME
 
 CatalystX::JobServer::Web - Catalyst application part of CatalystX::JobServer

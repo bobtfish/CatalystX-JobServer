@@ -48,6 +48,9 @@ __PACKAGE__->config(
             },
         },
     },
+    'Model::Rx' => {
+        class => 'Data::Rx',
+    },
 );
 
 __PACKAGE__->setup();

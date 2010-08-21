@@ -20,6 +20,15 @@ has jobs => (
     };},
 );
 
+has rx => (
+    isa => 'Data::Rx',
+    is => 'ro',
+    lazy => 1,
+    default => sub {
+        return shift->_application->model('Rx');
+    },
+);
+
 sub display_jobs : Chained('base') PathPart('') Args(0) {
     my ($self, $c) = @_;
     $c->res->body(JSON::XS->new->pretty(1)->encode({

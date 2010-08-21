@@ -44,6 +44,15 @@ has traits => (
     is => 'ro',
 );
 
+before build_instance_with_traits => sub {
+    my (undef, $class) = @_;
+    unless (find_meta($class)) {
+        my $meta = Moose::Meta::Class->initialize($class);
+        # Eww, needed for MX::T::P, which should just do find_meta instead..
+        $meta->add_method('meta' => sub { $meta });
+    }
+};
+
 sub COMPONENT {
     my ($class, $app, @rest) = @_;
     my $self = $class->next::method($app, @rest);

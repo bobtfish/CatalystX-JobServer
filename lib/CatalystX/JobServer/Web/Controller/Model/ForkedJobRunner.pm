@@ -51,11 +51,21 @@ sub display_job : Chained('find_job') PathPart('') Args(0) {
         field_composer_class => 'Form::Functional::Reflector::FieldComposer::Rx',
     );
     my $form_reflector = Form::Functional::Reflector::MetaClass->new();
-    my $job_meta = $self->find_job_meta($c->stash->{job_name});
+    my $job_name = $c->stash->{job_name};
+    my $job_meta = $self->find_job_meta($job_name);
 
     my $form = $form_reflector->generate_output_from($job_meta->name);
     $c->res->body(
-        q{<html><body><h1>Rx</h1><pre>} .
+        qq{<html><head>
+        <title>$job_name</title>
+        <script src="/static/jquery-1.3.2.min.js"></script>
+        <script src="/static/json2.js"></script>
+        <script src="/static/rx.js"></script>
+        <script src="/static/rx/coretypes.js"></script>
+        <script src="/static/form_rx.js"></script>
+        <script src="/static/dump.js"></script>
+        </head>
+        <body><h1>Rx</h1><pre>} .
         JSON::XS->new->pretty(1)->encode($rx_reflector->generate_output_from( $job_meta ))
         . q{</pre><h1>Form:</h1>}
         . Form::Functional::Renderer::TD->new->render($form)

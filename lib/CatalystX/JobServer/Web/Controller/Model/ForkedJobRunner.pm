@@ -44,6 +44,7 @@ sub find_job : Chained('base') PathPart('') CaptureArgs(1) {
     $c->stash(job_name => $jobname);
 }
 
+my $form;
 sub display_job : Chained('find_job') PathPart('') Args(0) {
     my ($self, $c) = @_;
     my $rx_reflector = Form::Functional::Reflector::MetaClass->new(
@@ -54,7 +55,10 @@ sub display_job : Chained('find_job') PathPart('') Args(0) {
     my $job_name = $c->stash->{job_name};
     my $job_meta = $self->find_job_meta($job_name);
 
-    my $form = $form_reflector->generate_output_from($job_meta->name);
+    $form ||= $form_reflector->generate_output_from($job_meta->name);
+    my $form_html = Form::Functional::Renderer::TD->new->render($form);
+    my ($form_id) = $form_html =~ m/form id="(form_\d+)"/;
+    my $form_js = qq{<script type="text/javascript">SetupRxFormChecker('$form_id')</script>};
     $c->res->body(
         qq{<html><head>
         <title>$job_name</title>
@@ -68,7 +72,7 @@ sub display_job : Chained('find_job') PathPart('') Args(0) {
         <body><h1>Rx</h1><pre id="rxdata">} .
         JSON::XS->new->pretty(1)->encode($rx_reflector->generate_output_from( $job_meta ))
         . q{</pre><h1>Form:</h1>}
-        . Form::Functional::Renderer::TD->new->render($form)
+        . $form_html . $form_js
         . q{</body></html>}
     );
 }

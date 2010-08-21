@@ -1,12 +1,12 @@
 package CatalystX::JobServer::Job::Test::RunForThirtySeconds;
 use CatalystX::JobServer::Moose;
 use AnyEvent;
-use MooseX::Types::Moose qw/ Num /;
+use MooseX::Types::Moose qw/ Int /;
 
 with 'CatalystX::JobServer::Role::Storage';
 
 has val => (
-    isa => Num,
+    isa => Int,
     is => 'ro',
     required => 1,
     traits => ['Serialize'],

@@ -1,7 +1,9 @@
 package CatalystX::JobServer::Web::Controller::Model::ForkedJobRunner;
 use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ HashRef /;
+use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use JSON::XS;
+use Form::Functional::Reflector::Metaclass;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -16,7 +18,7 @@ has jobs => (
         find_job_meta => 'get',
     },
     default => sub { return {
-       map { $_ => $_ } shift->_application->model('ForkedJobRunner')->jobs_registered->flatten
+       map { to_LoadableClass($_); $_ => $_->meta } shift->_application->model('ForkedJobRunner')->jobs_registered->flatten
     };},
 );
 
@@ -38,11 +40,18 @@ sub display_jobs : Chained('base') PathPart('') Args(0) {
 
 sub find_job : Chained('base') PathPart('') CaptureArgs(1) {
     my ($self, $c, $jobname) = @_;
-    $c->model('ForkedJobRunner')->jobs_registered->flatten;
+    $c->stash(job_name => $jobname);
 }
 
 sub display_job : Chained('find_job') PathPart('') Args(0) {
     my ($self, $c) = @_;
+    my $reflector = Form::Functional::Reflector::MetaClass->new(
+        field_outputter_class => 'Form::Functional::Reflector::FieldOutputter::Rx',
+        field_composer_class => 'Form::Functional::Reflector::FieldComposer::Rx',
+    );
+    $c->res->body(JSON::XS->new->pretty(1)->encode(
+        $reflector->generate_output_from( $self->find_job_meta($c->stash->{job_name}) )
+    ));
 }
 
 

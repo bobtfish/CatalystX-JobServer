@@ -3,7 +3,7 @@ use CatalystX::JobServer::Moose;
 use Moose::Util qw/ find_meta /;
 use MooseX::Types::Moose qw/ HashRef ArrayRef Str /;
 use MooseX::Types::LoadableClass qw/LoadableClass/;
-use CatalystX::JobServer::Inlined::MooseX::Traits::Pluggable;
+use MooseX::Traits::Pluggable 0.10;
 
 extends 'Catalyst::Model';
 with 'MooseX::Traits::Pluggable' => {

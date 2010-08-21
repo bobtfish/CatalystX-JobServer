@@ -31,7 +31,7 @@ requires 'MooseX::Types::LoadableClass' => '0.002';
 requires 'MooseX::Types';
 requires 'MooseX::MethodAttributes' => '0.22';
 requires 'Catalyst::Component::InstancePerContext';
-requires 'MooseX::Traits::Pluggable' => '0.09'; # at least d37ecc6
+requires 'MooseX::Traits::Pluggable' => '0.10';
 requires 'CatalystX::InjectComponent';
 requires 'JSON::XS';
 requires 'JSON';

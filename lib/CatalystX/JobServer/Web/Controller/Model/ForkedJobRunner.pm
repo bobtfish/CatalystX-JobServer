@@ -65,7 +65,7 @@ sub display_job : Chained('find_job') PathPart('') Args(0) {
         <script src="/static/form_rx.js"></script>
         <script src="/static/dump.js"></script>
         </head>
-        <body><h1>Rx</h1><pre>} .
+        <body><h1>Rx</h1><pre id="rxdata">} .
         JSON::XS->new->pretty(1)->encode($rx_reflector->generate_output_from( $job_meta ))
         . q{</pre><h1>Form:</h1>}
         . Form::Functional::Renderer::TD->new->render($form)

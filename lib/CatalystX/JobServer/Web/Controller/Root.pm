@@ -26,7 +26,11 @@ sub base : Chained('/') PathPart('') CaptureArgs(0) {}
 sub index :Chained('base') PathPart('') Args(0) {
     my ( $self, $c ) = @_;
     #$c->res->header('Content-Type', 'application/json');
-    $c->res->body($c->model('ComponentMap')->freeze(1));
+    my $cm = $c->model('ComponentMap');
+    $c->stash(
+        component_map => $cm,
+        component_map_astext => $cm->freeze(1),
+    );
 }
 
 =head2 default
@@ -52,7 +56,7 @@ Attempt to render a view, if needed.
 
 =cut
 
-sub end : Action {
+sub end : ActionClass('RenderView') {
     my ($self, $c) = @_;
     if ($c->stash->{data}) {
         if (blessed $c->stash->{data}) {
@@ -60,7 +64,6 @@ sub end : Action {
             $c->res->body($c->stash->{data}->freeze(1));
         }
     }
-    $c->res->body('No output :(') unless $c->res->body;
 }
 
 =head1 AUTHOR

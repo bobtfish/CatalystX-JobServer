@@ -6,6 +6,7 @@ use JSON;
 use Try::Tiny;
 use IO::Handle;
 use IO::Select;
+use POSIX qw( EAGAIN );
 
 method run {
     STDOUT->autoflush(1);
@@ -20,14 +21,15 @@ method run {
     while (1) {
         my ($ready) = $s->can_read(10);
         next unless $ready;
-        my $this;
-        while ($ready->sysread($this, 4096)) {
+        my ($this, $bytes);
+        while ($bytes = $ready->sysread($this, 4096)) {
             $buf .= $this;
             $this = '';
             while ($self->get_json_from_buffer(
                    \$buf, sub { $self->json_object(shift) })
                ) { 1; } # Call as many times as we have JSON
         }
+        confess("Got EOF from parent: $!") if (!defined $bytes && $! != EAGAIN);
     }
 }
 

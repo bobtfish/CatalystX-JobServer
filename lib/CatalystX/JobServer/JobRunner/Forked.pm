@@ -2,7 +2,9 @@ package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
 use MooseX::Types::Moose qw/ HashRef Int /;
+use AnyEvent;
 use AnyEvent::Handle;
+use Coro;
 use namespace::autoclean;
 use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
@@ -54,6 +56,15 @@ sub _first_free_worker {
 sub _do_run_job {
     my ($self, $job) = @_;
 
+    # Ensure we have enough workers already running
+    my $n_workers_short = $self->num_workers - scalar(keys %{$self->_workers});
+    if ($n_workers_short > 0) {
+        warn("Short of workers, spawning $n_workers_short");
+        for (1..$n_workers_short) {
+            $self->_spawn_worker();
+        }
+    }
+
     # This is fairly subtle, we need to block if we have too many jobs.
     # Here is how it works:
     #  - Find a free worker (where the value for the PID is undef)
@@ -67,6 +78,7 @@ sub _do_run_job {
     do {
         $pid = $self->_first_free_worker;
         if (!$pid) {
+            warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(keys %{$self->_workers}));
             $self->_hit_max(AnyEvent->condvar);
             $self->_hit_max->recv;
         }
@@ -95,8 +107,21 @@ sub _spawn_worker {
            fh => $from_r,
            on_error => sub {
               my ($hdl, $fatal, $msg) = @_;
-              warn "got error $msg\n";
+              warn "got error from child $pid, destroying handle: $msg\n";
               $hdl->destroy;
+              delete $self->_write_handles->{$pid};
+              delete  $self->_read_handles->{$pid};
+              delete $self->_workers->{$pid};
+
+              async {
+                  my $w = AnyEvent->timer( after => 2, cb => sub {
+                      if (kill 0, $pid) {
+                          warn "Child $pid did not gracefully close, killing hard!";
+                          kill 9, $pid;
+                      }
+                      $self->_spawn_worker(); # And try spawning a new one..
+                  });
+              };
            },
            on_read => sub {
                my ($hdl) = @_;

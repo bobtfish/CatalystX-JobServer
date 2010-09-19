@@ -1,0 +1,4 @@
+<h1>JSON</h1>
+<pre>
+[% component_map_astext %]
+<pre>

@@ -87,7 +87,7 @@ sub _do_run_job {
     my $to_w = $self->_write_handles->{$pid};
     $self->_workers->{$pid} = $job;
 #    warn Data::Dumper::Dumper($job);
-    $to_w->syswrite("\x00" . $job->job . "\xff");
+    $to_w->syswrite("\x00" . $job . "\xff");
 }
 
 sub _spawn_worker {

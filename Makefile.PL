@@ -38,6 +38,7 @@ requires 'CatalystX::InjectComponent';
 requires 'JSON::XS';
 requires 'JSON';
 requires 'JSON::Any';
+requires 'Data::UUID';
 requires 'aliased';
 requires 'Sys::Hostname';
 

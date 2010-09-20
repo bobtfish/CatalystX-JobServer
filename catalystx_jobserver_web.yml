@@ -2,6 +2,8 @@
 name: "CatalystX::JobServer::Web"
 Model::MessageQueue:
     class: "CatalystX::JobServer::MessageQueue"
+    traits:
+        - "+CatalystX::JobServer::TraitFor::MessageQueue::SendTestJobs"
     args:
         port: 5672
         host: localhost

@@ -34,11 +34,19 @@ has handlers => (
     },
 );
 
+before base => sub {
+    my ($self, $c) = @_;
+    $c->stash( hippie_uri_path => $c->req->uri->path );
+};
+
 sub hippie : Chained('find') PathPart('_hippie') Args() {
     my ($self, $c, $type, $arg) = @_;
 
     my $code = $self->_hippie->can("handler_$type");
-    $c->detach('/error404') unless ($code); # FIXME 400?
+    unless ($code) {
+        $c->log->warn("Cannot find hippe $type handler");
+        $c->detach('/error404'); # FIXME 400?
+    }
 
     my $env = $c->req->env;
     local $env->{PATH_INFO} = $env->{PATH_INFO};

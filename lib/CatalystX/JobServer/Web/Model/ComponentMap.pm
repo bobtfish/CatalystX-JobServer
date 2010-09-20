@@ -13,7 +13,7 @@ sub build_per_context_instance {
         for grep { ! /CatalystX::JobServer::Web::Model::/ } keys %components;
     ComponentMap->new(
         components => \%components,
-         uri_for_model => sub { $ctx->uri_for_action('/model/inspect', [ shift ] )->as_string },
+         uri_for_model => sub { $ctx->uri_for_action('/model/inspect', [ lc shift ] )->as_string },
          routing_key_for_model => sub { $ctx->instance_routing_key . ':model:inspect:' . shift },
          instance_queue_name => $ctx->instance_queue_name,
          instance_uri_path => $ctx->instance_uri_path

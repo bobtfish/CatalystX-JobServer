@@ -5,7 +5,7 @@ use JSON::XS;
 
 BEGIN { extends 'Catalyst::Controller' }
 
-sub base : Chained('/model/base') PathPart('ForkedJobRunner') CaptureArgs(0) {
+sub base : Chained('/model/base') PathPart('forkedjobrunner') CaptureArgs(0) {
     my ($self, $c) = @_;
     $c->stash(component => $c->model('ForkedJobRunner'));
 }

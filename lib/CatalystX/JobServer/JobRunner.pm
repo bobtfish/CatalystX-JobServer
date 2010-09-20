@@ -5,6 +5,7 @@ use AnyEvent::Util qw/ fork_call /;
 use MooseX::Types::Set::Object;
 use aliased 'CatalystX::JobServer::Job::Running';
 use aliased 'CatalystX::JobServer::Job::Finished';
+use Scalar::Util qw/ refaddr /;
 use namespace::autoclean;
 use Data::Dumper;
 
@@ -66,6 +67,45 @@ has jobs_by_uuid => (
     },
 );
 
+has _jobs_by_uuid_handles => (
+    is => 'ro',
+    isa => HashRef,
+    default => sub { {} },
+);
+
+before _remove_job_by_uuid => sub {
+    my ($self, $uuid) = @_;
+    delete $self->_jobs_by_uuid_handles->{$uuid};
+};
+
+before _add_job_by_uuid => sub {
+    my ($self, $uuid) = @_;
+    $self->_jobs_by_uuid_handles->{$uuid} = {};
+};
+
+before _remove_running => sub {
+    my ($self, $job) = @_;
+    if (exists $job->job->{uuid}) {
+        warn("Sending messages to handles for " . $job->job->{uuid});
+        foreach my $h (values %{$self->_jobs_by_uuid_handles->{$job->job->{uuid}}}) {
+            $h->send_msg($job->pack);
+        }
+    }
+};
+
+sub register_listener {
+    my ($self, $uuid, $h) = @_;
+    return unless exists $self->jobs_by_uuid->{$uuid};
+    warn("Added listener");
+    $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)} = $h;
+}
+
+sub remove_listener {
+    my ($self, $uuid, $h) = @_;
+    warn("Removed listener");
+    delete $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)};
+}
+
 #with 'CatalystX::JobServer::Role::QueueConsumer::LogMessageStructured';
 sub consume_message {
     my ($self, $message, $publisher) = @_;
@@ -80,7 +120,7 @@ sub act_on_message {
 sub job_finished {
     my ($self, $job, $output) = @_;
     my $finished = Finished->new(job => $job);
-    $finished->finalize;
+    $finished->finalize();
     $self->_remove_running($finished);
 }
 

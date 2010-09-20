@@ -5,6 +5,8 @@ use MooseX::Types::Moose qw/ Bool HashRef /;
 use JSON;
 use namespace::autoclean;
 
+with 'CatalystX::JobServer::Role::Storage';
+
 # FIXME - Gross, use a TC?
 around BUILDARGS => sub {
     my ($orig, $self, @args) = @_;

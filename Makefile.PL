@@ -16,7 +16,7 @@ requires 'Catalyst::Action::RenderView';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'YAML';
-requires 'Catalyst::Engine::PSGI'; # At least bf871c7
+requires 'Catalyst::Engine::PSGI' => '0.11'; # At least bf871c7
 requires 'Corona' => '0.1004';
 requires 'Coro';
 requires 'Net::RabbitFoot';

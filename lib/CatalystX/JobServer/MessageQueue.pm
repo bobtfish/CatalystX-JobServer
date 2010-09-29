@@ -11,6 +11,8 @@ use aliased 'Net::RabbitFoot';
 use Data::Dumper;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
 
+with 'CatalystX::JobServer::Role::Storage';
+
 our $VERBOSE = 0;
 
 has mq => (

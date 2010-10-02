@@ -30,7 +30,12 @@ has _workers => (
     default => sub {
         my $self = shift;
         # FIXME weaken self into closure
-        return [ map { $self->_new_worker( job_finished_cb => sub { $self->_hit_max->send if $self->_hit_max }) } 1..$self->num_workers ], },
+        return [ map { $self->_new_worker( job_finished_cb => sub {
+            my $job = shift;
+            my $output = shift;
+            $self->job_finished($job, $output);
+            $self->_hit_max->send if $self->_hit_max
+        }) } 1..$self->num_workers ], },
 );
 
 has _hit_max => (

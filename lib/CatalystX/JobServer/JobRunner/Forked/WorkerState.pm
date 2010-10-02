@@ -35,8 +35,10 @@ has job_finished_cb => (
 
 sub job_finished {
     my $self = shift;
-    $self->job_finished_cb->()
+    my $output = shift;
+    $self->job_finished_cb->($self->working_on, $output)
         if $self->_has_job_finished_cb;
+    $self->_clear_working_on;
 }
 
 has respawn_every => (
@@ -127,9 +129,8 @@ sub __on_read {
     $hdl->{rbuf} = '';
 #               warn("PARENT HANDLE DID READ");
     while ( $self->get_json_from_buffer(\$buf, sub {
-        my $running = $self->working_on;
 #                   warn("GOT FINISHED JOB " . Data::Dumper::Dumper($running));
-        $self->job_finished($running, shift);
+        $self->job_finished(shift);
         $self->spawn_new_worker if $self->respawn;
     })) { 1 }
 }

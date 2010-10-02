@@ -1,10 +1,9 @@
 package CatalystX::JobServer::JobRunner::Forked::WorkerState;
 use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
-use MooseX::Types::Moose qw/ HashRef Int /;
+use MooseX::Types::Moose qw/ HashRef Int CodeRef /;
 use AnyEvent;
 use AnyEvent::Handle;
-use Coro;
 use namespace::autoclean;
 use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
@@ -26,6 +25,18 @@ foreach (qw/ pid working_on worker_started_at respawn /) {
 
 sub free { ! shift->working_on }
 
+has job_finished_cb => (
+    isa => CodeRef,
+    is => 'ro',
+    predicate => '_has_job_finished_cb',
+);
+
+sub job_finished {
+    my $self = shift;
+    $self->job_finished_cb->()
+        if $self->_has_job_finished_cb;
+}
+
 has respawn_every => (
     is => 'ro',
     predicate => '_has_respawn_every',
@@ -37,7 +48,7 @@ has _respawn_every_timer => (
     lazy => 1,
     default => sub {
         my $self = shift;
-        AnyEvent−>timer(
+        AnyEvent->timer(
             after => $self->respawn_every,
             interval => $self->respawn_every,
             cb => sub {
@@ -52,7 +63,7 @@ has _respawn_every_timer => (
 
 sub BUILD {
     my $self = shift;
-    $self->_spawn_worker;
+    $self->_spawn_worker_if_needed;
     $self->_respawn_every_timer
         if $self->_has_respawn_every;
 }
@@ -60,7 +71,8 @@ sub BUILD {
 sub DEMOLISH {
     my $self = shift;
     # Quit all our workers
-    kill 15, $self->pid;
+    kill 15, $self->pid
+        if $self->pid;
 }
 
 sub run_job {
@@ -90,7 +102,7 @@ sub __on_error {
     $self->_clear_pid;
     $self->_clear_ae_handle;
     $self->_clear_working_on;
-    $self->_clear_worker_started_at
+    $self->_clear_worker_started_at;
     $self->_clear_respawn;
 
     async {
@@ -117,7 +129,7 @@ sub __on_read {
 #                   warn("GOT FINISHED JOB " . Data::Dumper::Dumper($running));
         $self->job_finished($running, shift);
         $self->spawn_new_worker if $self->respawn;
-    }) { 1 }
+    })) { 1 }
 }
 
 sub _spawn_worker_if_needed {

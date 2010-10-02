@@ -1,13 +1,8 @@
 package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
-use AnyEvent::Util qw/ portable_pipe /;
 use MooseX::Types::Moose qw/ ArrayRef HashRef Int /;
-use AnyEvent;
-use AnyEvent::Handle;
-use Coro;
+use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use namespace::autoclean;
-use CatalystX::JobServer::Job::Finished;
-use CatalystX::JobServer::Job::Running;
 
 with 'CatalystX::JobServer::JobRunner';
 
@@ -35,7 +30,7 @@ has _workers => (
     default => sub {
         my $self = shift;
         # FIXME weaken self into closure
-        return [ map { $self->_new_worker( free_cb => sub { $self->_hit_max->send if $self->_hit_max }) } 1..$self->num_workers ], },
+        return [ map { $self->_new_worker( job_finished_cb => sub { $self->_hit_max->send if $self->_hit_max }) } 1..$self->num_workers ], },
 );
 
 has _hit_max => (
@@ -70,7 +65,7 @@ sub _do_run_job {
     do {
         $worker = $self->_first_free_worker;
         if (!$worker) {
-            warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(keys %{$self->_workers}));
+            warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->_workers}));
             $self->_hit_max(AnyEvent->condvar)
                 unless $self->_has_hit_max;
             $self->_hit_max->recv;

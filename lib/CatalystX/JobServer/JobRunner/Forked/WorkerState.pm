@@ -9,6 +9,8 @@ use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
 use DateTime;
 
+# FIXME - Handle SIGCHLD
+
 foreach (qw/ ae write read /) {
     has "_${_}_handle" => (
         is => 'rw',

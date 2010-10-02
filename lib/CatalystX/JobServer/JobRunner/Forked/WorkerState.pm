@@ -24,6 +24,8 @@ foreach (qw/ pid working_on worker_started_at respawn /) {
     );
 }
 
+sub free { ! shift->working_on }
+
 has respawn_every => (
     is => 'ro',
     predicate => '_has_respawn_every',

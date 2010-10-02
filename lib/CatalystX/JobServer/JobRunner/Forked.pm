@@ -1,7 +1,7 @@
 package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
-use MooseX::Types::Moose qw/ HashRef Int /;
+use MooseX::Types::Moose qw/ ArrayRef HashRef Int /;
 use AnyEvent;
 use AnyEvent::Handle;
 use Coro;
@@ -18,46 +18,44 @@ has num_workers => (
     traits => ['Serialize'],
 );
 
+has worker_state_class => (
+    isa => LoadableClass,
+    is => 'ro',
+    coerce => 1,
+    default => 'CatalystX::JobServer::JobRunner::Forked::WorkerState',
+    handles => {
+        _new_worker => 'new',
+    }
+);
+
 has _workers => (
     isa => ArrayRef,
     is => 'ro',
-    default => sub { [], },
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        # FIXME weaken self into closure
+        return [ map { $self->_new_worker( free_cb => sub { $self->_hit_max->send if $self->_hit_max }) } 1..$self->num_workers ], },
 );
 
 has _hit_max => (
     is => 'rw',
+    clearer => '_clear_hit_max',
+    predicate => '_has_hit_max',
 );
-
-foreach (qw/ write read /) {
-    has '_' . $_ . '_handles' => (
-        isa => HashRef,
-        is => 'ro',
-        default => sub { {} },
-    );
-}
 
 sub BUILD {
     my $self = shift;
-    my $n = $self->num_workers;
-    $self->_spawn_worker for (1..$n);
+    $self->_workers;
 }
 
 sub _first_free_worker {
     my ($self) = @_;
-    (grep { ! $self->_workers->{$_} } keys %{ $self->_workers })[0];
+    (grep { $_->free } @{ $self->_workers })[0];
 }
 
 sub _do_run_job {
     my ($self, $job) = @_;
-
-    # Ensure we have enough workers already running
-    my $n_workers_short = $self->num_workers - scalar(keys %{$self->_workers});
-    if ($n_workers_short > 0) {
-        warn("Short of workers, spawning $n_workers_short");
-        for (1..$n_workers_short) {
-            $self->_spawn_worker();
-        }
-    }
 
     # This is fairly subtle, we need to block if we have too many jobs.
     # Here is how it works:
@@ -68,20 +66,20 @@ sub _do_run_job {
     #    then if there is a jobs waiting convar, grab it, clear it, send on it..
     #    (like that, so that if the next thread that runs hits max workers (again),
     #     it will set a _new_ condvar)
-    my $pid;
+    my $worker;
     do {
-        $pid = $self->_first_free_worker;
-        if (!$pid) {
+        $worker = $self->_first_free_worker;
+        if (!$worker) {
             warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(keys %{$self->_workers}));
-            $self->_hit_max(AnyEvent->condvar);
+            $self->_hit_max(AnyEvent->condvar)
+                unless $self->_has_hit_max;
             $self->_hit_max->recv;
+            $self->_clear_hit_max;
         }
-    } while (!$pid);
-    my $from_r = $self->_read_handles->{$pid};
-    my $to_w = $self->_write_handles->{$pid};
-    $self->_workers->{$pid} = $job;
+    } while (!$worker);
+
 #    warn Data::Dumper::Dumper($job);
-    $to_w->syswrite("\x00" . $job . "\xff");
+    $worker->run_job($job);
 }
 
 

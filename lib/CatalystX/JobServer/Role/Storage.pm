@@ -1,7 +1,7 @@
 package CatalystX::JobServer::Role::Storage;
 use CatalystX::JobServer::Moose::Role;
 use JSON::XS;
-use MooseX::Storage;
+use MooseX::Storage 0.28;
 use Set::Object;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
 use MooseX::Types::Moose qw/ ArrayRef /;
@@ -42,14 +42,14 @@ sub freeze {
 around 'pack' => sub {
     my ($orig, $self, %args) = @_;
     $args{engine_traits} ||= [];
-    push(@{$args{engine_traits}}, 'OnlySerializeMarked');
+    push(@{$args{engine_traits}}, '+CatalystX::JobServer::Role::Storage::Engine::Trait::OnlySerializeMarked');
     $self->$orig(%args);
 };
 
 around 'unpack' => sub {
     my ($orig, $self, $data, %args) = @_;
     $args{engine_traits} ||= [];
-    push(@{$args{engine_traits}}, 'OnlySerializeMarked');
+    push(@{$args{engine_traits}}, '+CatalystX::JobServer::Role::Storage::Engine::Trait::OnlySerializeMarked');
     $self->$orig($data, %args);
 };
 

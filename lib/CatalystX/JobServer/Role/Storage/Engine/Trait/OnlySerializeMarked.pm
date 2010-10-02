@@ -1,4 +1,4 @@
-package MooseX::Storage::Engine::Trait::OnlySerializeMarked;
+package CatalystX::JobServer::Role::Storage::Engine::Trait::OnlySerializeMarked;
 use CatalystX::JobServer::Moose::Role;
 
 around map_attributes => sub {

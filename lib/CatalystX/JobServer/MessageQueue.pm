@@ -65,9 +65,10 @@ my $rf = RabbitFoot->new(
 
 my ($build_mq_lock, $conn);
 method _build_mq {
-    $build_mq_lock ?
-        do { $build_mq_lock->recv; return $conn }
-      : do { $build_mq_lock = AnyEvent->condvar };
+# FIXME
+#    $build_mq_lock ?
+#        do { $build_mq_lock->recv; return $conn }
+#      : do { $build_mq_lock = AnyEvent->condvar };
     try {
         $conn = $rf->connect(
            on_close => sub {
@@ -82,13 +83,13 @@ method _build_mq {
         );
     }
     catch {
-        $build_mq_lock->send;
-        undef $build_mq_lock;
+#        $build_mq_lock->send;
+#        undef $build_mq_lock;
         # FIXME - Retry?
         die(sprintf("Could not connect to Rabbit MQ server on %s:%s - error $_\n", $self->host, $self->port));
     };
-    $build_mq_lock->send;
-    undef $build_mq_lock;
+#    $build_mq_lock->send;
+#    undef $build_mq_lock;
     return $conn;
 }
 
@@ -187,9 +188,10 @@ with 'CatalystX::JobServer::Role::LocatesModels';
 my ($build_channel_objects_lock, %channel_objects);
 sub _build__channel_objects {
     my $self = shift;
-    $build_channel_objects_lock ?
-        do { $build_channel_objects_lock->recv; return $conn }
-      : do { $build_channel_objects_lock = AnyEvent->condvar };
+# FIXME
+#    $build_channel_objects_lock ?
+#        do { $build_channel_objects_lock->recv; return $conn }
+#      : do { $build_channel_objects_lock = AnyEvent->condvar };
     %channel_objects = ();
     foreach my $name (keys %{$self->channels}) {
         #warn("Building channel named $name");
@@ -228,7 +230,7 @@ sub _build__channel_objects {
         )
             if $have_queues;
     }
-    $build_channel_objects_lock->send;
+    #$build_channel_objects_lock->send;
     return {%channel_objects};
 }
 
@@ -273,6 +275,8 @@ sub _build_binding_for_queue {
             unless blessed $bind_frame->method_frame and $bind_frame->method_frame->isa('Net::AMQP::Protocol::Queue::BindOk');
     $self->_inc_no_of_bindings_registered;
 }
+
+sub BUILD { shift->_channel_objects }
 
 sub DEMOLISH {
     my ($self) = shift;

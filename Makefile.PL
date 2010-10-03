@@ -25,7 +25,7 @@ requires 'Log::Message::Structured';
 requires 'MooseX::Types::ISO8601';
 requires 'MooseX::Clone';
 requires 'MooseX::Types::Set::Object';
-requires 'MooseX::Storage';
+requires 'MooseX::Storage' => '0.28';
 requires 'MooseX::Types::Structured';
 requires 'MooseX::Types::Path::Class';
 requires 'MooseX::Types::Common::String';

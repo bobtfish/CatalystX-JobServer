@@ -2,9 +2,19 @@ package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ ArrayRef HashRef Int /;
 use MooseX::Types::LoadableClass qw/ LoadableClass /;
+use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use namespace::autoclean;
 
 with 'CatalystX::JobServer::JobRunner';
+
+has started_at => (
+    isa => ISO8601DateTimeStr,
+    is => 'ro',
+    coerce => 1,
+    default => sub { DateTime->now },
+    init_arg => undef,
+    traits => ['Serialize'],
+);
 
 has num_workers => (
     isa => Int,

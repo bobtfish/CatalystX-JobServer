@@ -14,7 +14,8 @@ use DateTime;
 foreach (qw/ ae write read /) {
     has "_${_}_handle" => (
         is => 'rw',
-        clearer => "_clear_${_}_handle"
+        clearer => "_clear_${_}_handle",
+        init_arg => undef,
     );
 }
 
@@ -22,6 +23,7 @@ foreach (qw/ pid working_on worker_started_at respawn /) {
     has $_ => (
         is => 'rw',
         clearer => "_clear_${_}",
+        init_arg => undef,
     );
 }
 
@@ -63,6 +65,7 @@ has _respawn_every_timer => (
             },
         );
     },
+    init_arg => undef,
 );
 
 sub BUILD {

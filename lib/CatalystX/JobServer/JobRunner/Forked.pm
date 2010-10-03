@@ -33,6 +33,12 @@ has worker_state_class => (
     }
 );
 
+has worker_config => (
+    isa => HashRef,
+    is => 'ro',
+    default => sub { {} },
+);
+
 has _workers => (
     isa => ArrayRef,
     is => 'ro',
@@ -40,12 +46,21 @@ has _workers => (
     default => sub {
         my $self = shift;
         # FIXME weaken self into closure
-        return [ map { $self->_new_worker( job_finished_cb => sub {
-            my $job = shift;
-            my $output = shift;
-            $self->job_finished($job, $output);
-            $self->_hit_max->send if $self->_hit_max
-        }) } 1..$self->num_workers ], },
+        return [
+            map {
+                $self->_new_worker(
+                    %{ $self->worker_config },
+                    job_finished_cb => sub {
+                        my $job = shift;
+                        my $output = shift;
+                        $self->job_finished($job, $output);
+                        $self->_hit_max->send if $self->_hit_max
+                    },
+                )
+            }
+            1..$self->num_workers
+        ];
+    },
 );
 
 has _hit_max => (

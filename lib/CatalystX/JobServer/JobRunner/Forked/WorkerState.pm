@@ -8,10 +8,9 @@ use namespace::autoclean;
 use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
 use DateTime;
+use Coro;
 
-# FIXME - Handle SIGCHLD
-
-foreach (qw/ ae write read /) {
+foreach (qw/ ae write read sigchld/) {
     has "_${_}_handle" => (
         is => 'rw',
         clearer => "_clear_${_}_handle",
@@ -99,6 +98,8 @@ sub spawn_new_worker {
 
 sub __on_error {
     my ($self, $hdl, $fatal, $msg) = @_;
+    $self->_clear_respawn;
+
     my $pid = $self->pid;
     warn "got error from child $pid, destroying handle: $msg\n";
 
@@ -110,7 +111,7 @@ sub __on_error {
     $self->_clear_ae_handle;
     $self->_clear_working_on;
     $self->_clear_worker_started_at;
-    $self->_clear_respawn;
+    $self->_clear_sigchld_handle;
 
     async {
         my $cv = AnyEvent->condvar;
@@ -158,6 +159,12 @@ sub _spawn_worker_if_needed {
                 on_read => sub { __on_read($self, @_) },
             )
         );
+        $self->_sigchld_handle(AnyEvent->child(
+            pid => $pid,
+            cb => sub {
+                $self->__error($self->_ae_handle, undef, 'Caught SIGCHLD');
+            },
+        ));
         $self->worker_started_at(DateTime->now);
         return $pid;
     }

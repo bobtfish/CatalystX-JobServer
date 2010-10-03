@@ -8,6 +8,8 @@ use IO::Handle;
 use IO::Select;
 use POSIX qw( EAGAIN );
 
+$SIG{INT} = \&Carp::cluck;
+
 method run {
     STDOUT->autoflush(1);
     my $buf;

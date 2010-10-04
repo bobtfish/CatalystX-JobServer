@@ -84,6 +84,8 @@ sub DEMOLISH {
 sub run_job {
     my ($self, $job) = @_;
 
+    confess("Already working!") if $self->working_on;
+
     $self->_spawn_worker_if_needed;
 
     $self->working_on($job);

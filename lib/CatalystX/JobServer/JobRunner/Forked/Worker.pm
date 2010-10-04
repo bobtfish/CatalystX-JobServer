@@ -32,6 +32,7 @@ method run {
                ) { 1; } # Call as many times as we have JSON
         }
         confess("Got EOF from parent: $!") if (!defined $bytes && $! != EAGAIN);
+        sleep 1; # FIXME - Cheesy hack!
     }
 }
 

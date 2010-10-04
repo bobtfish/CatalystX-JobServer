@@ -99,10 +99,11 @@ sub _do_run_job {
             $self->_hit_max(AnyEvent->condvar)
                 unless $self->_has_hit_max;
             $self->_hit_max->recv;
+            warn("Job finished, waking up");
             $self->_clear_hit_max;
         }
     } while (!$worker);
-
+    warn("Got free worker, running job");
 #    warn Data::Dumper::Dumper($job);
     $worker->run_job($job);
 }

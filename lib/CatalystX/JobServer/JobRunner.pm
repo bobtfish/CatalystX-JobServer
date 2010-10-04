@@ -135,9 +135,9 @@ sub run_job {
     my ($self, $job, $return_cb) = @_;
     Carp::confess("No return_cb") unless $return_cb;
     my $running_job = Running->new(job => $job, return_cb => $return_cb);
-    $self->_add_running($running_job);
 #    warn("do_run_job " . Dumper ($running_job));
     $self->_do_run_job($job);
+    $self->_add_running($running_job);
 }
 
 requires '_do_run_job';

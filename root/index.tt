@@ -1,4 +1,11 @@
+<html>
+<head>
+</head>
+<body>
 <h1>JSON</h1>
 <pre>
 [% component_map_astext %]
-<pre>
+</pre>
+</body>
+</html>
+

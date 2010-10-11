@@ -1,0 +1,96 @@
+#!/usr/bin/perl
+#
+# Parameters supported:
+#
+# config
+# autoconf
+#
+# Magic markers:
+#%# family=auto
+#%# capabilities=autoconf
+
+use strict;
+use warnings;
+use IO::Socket::INET;
+use FindBin;
+#use Munin::Plugin;
+use LWP;
+use JSON qw/decode_json/;
+
+=head1 NAME
+
+monitor_jobserver_queues - A munin plugin that collects stats from your CatalystX::JobServer instances
+
+=head1 APPLICABLE SYSTEMS
+
+CatalystX::JobServer
+
+=head1 CONFIGURATION
+
+If you'd like to test a different host, then symlink the script with an
+underscored followed by the hostname or IP:
+
+ln -s /usr/share/munin/plugins/monitor_jobserver_queues /etc/munin/plugins/monitor_jobserver_queues_crow.cissme.com_5000
+
+=head1 BUGS
+
+None known so far. If you find any, let me know.
+
+=head1 AUTHOR
+
+Tomas Doran (t0m) - c<< <bobtfish@bobtfish.net> >>
+
+=head1 LICENSE
+
+Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+
+=cut
+
+my $host = $FindBin::Script;
+$host =~ s/monitor_jobserver_queues_//;
+$host ||= 'localhost_5000';
+$host =~ s/_(\d+)$/:$1/;
+$host .= ':5000' if $host !~ /:\d+$/;
+
+my $ua = LWP::UserAgent->new;
+$ua->timeout(10);
+
+my $res = $ua->get('http://' . $host); #, { Accept => 'application/json' });
+die($res->code . " for " . $host) unless $res->is_success;
+
+my $content = $res->content;
+$content =~ s/.*?<pre>//s; $content =~ s/<\/?pre>.*//s;
+my $data = decode_json($content);
+my %out_data;
+
+foreach my $name (keys %$data) {
+    my $res = $ua->get($data->{$name}->{uri}); #, { Accept => 'application/json' });
+    die($res->code . " for " . $data->{$name}->{uri}) unless $res->is_success;
+
+    my $data = decode_json($res->content);
+    next unless exists $data->{jobs_running_count};
+    $out_data{lc($name)} = $data->{jobs_running_count};
+}
+
+
+if($ARGV[0] and $ARGV[0] eq 'config') {
+    print "graph_title JobServer $host status\n";
+    print "graph_category catalystx-jobserver\n";
+    print "graph_scale no\n";
+
+    foreach my $name (keys %out_data) {
+        print "$name.label $name\n"."$name.type GAUGE\n";
+    }
+
+    exit 0;
+}
+elsif(!$ARGV[0] || $ARGV[0] eq 'autoconf') {
+    foreach my $name (keys %out_data) {
+        print "$name.value " . $out_data{$name} . "\n";
+    }
+    exit 0;
+}
+
+# EOF
+
+

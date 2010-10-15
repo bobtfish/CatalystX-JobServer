@@ -24,7 +24,7 @@ has uuid => (
 );
 
 method run {
-    sleep 30;
+    sleep 3 + int($self->val);
     return $self;
 }
 

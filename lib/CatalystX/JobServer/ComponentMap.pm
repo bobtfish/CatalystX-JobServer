@@ -25,7 +25,6 @@ foreach my $name (qw/ instance_queue_name instance_uri_path /) {
 }
 
 with qw/
-    MooseX::Clone
     CatalystX::JobServer::Role::Storage
 /;
 

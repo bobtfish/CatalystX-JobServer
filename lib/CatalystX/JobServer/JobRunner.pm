@@ -22,32 +22,20 @@ has jobs_running_count => (
     }
 );
 
-has jobs_running => (
-    isa      => "Set::Object",
-    default => sub { Set::Object->new },
-    coerce => 1,
-    handles  => {
-        jobs_running => "members",
-        _add_running => "insert",
-        _remove_running => "remove",
-    },
-    traits => ['Serialize'],
-);
-
-before _add_running => sub {
+sub _add_running {
     my ($self, $job) = @_;
     $self->_inc_running_job_count;
     if (exists $job->job->{uuid}) {
         $self->_add_job_by_uuid($job->job->{uuid}, $job);
     }
-};
-after _remove_running => sub {
+}
+sub _remove_running {
     my ($self, $job) = @_;
     $self->_dec_running_job_count;
     if (exists $job->job->{uuid}) {
         $self->_remove_job_by_uuid($job->job->{uuid}, $job);
     }
-};
+}
 
 has jobs_registered => (
     is => 'ro',

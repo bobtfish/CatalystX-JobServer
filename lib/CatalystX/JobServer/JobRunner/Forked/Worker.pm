@@ -8,9 +8,8 @@ use IO::Handle;
 use IO::Select;
 use POSIX qw( EAGAIN );
 
-$SIG{INT} = \&Carp::cluck;
-
 method run {
+    $0 = 'perl jobserver_worker [idle]';
     STDOUT->autoflush(1);
     my $buf;
     my $io = IO::Handle->new;
@@ -37,10 +36,12 @@ method run {
 }
 
 method json_object ($json) {
+    $0 = 'perl jobserver_worker [starting job]';
     my ($instance, $ret);
+    my $running_class;
     my $class = try {
         my $data = from_json($json);
-        my $running_class = to_LoadableClass($data->{__CLASS__})
+        $running_class = to_LoadableClass($data->{__CLASS__})
             or die("Coud not load class " . $data->{__CLASS__});
         $instance = $running_class->unpack($data);
     }
@@ -48,6 +49,7 @@ method json_object ($json) {
         warn "CAUGHT EXCEPTION INFLATING: $_ dieing..";
         exit 1;
     };
+    $0 = "perl jobserver_worker [running $running_class]";
     try {
         $ret = $instance->run;
     }
@@ -63,6 +65,7 @@ method json_object ($json) {
         warn "CAUGHT EXCEPTION FREEZING RESPONSE: $_ dieing..";
         exit 1;
     };
+    $0 = 'perl jobserver_worker [idle]';
 }
 
 with 'CatalystX::JobServer::Role::BufferWithJSON';

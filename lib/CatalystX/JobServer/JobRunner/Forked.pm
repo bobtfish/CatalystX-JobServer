@@ -39,7 +39,7 @@ has worker_config => (
     default => sub { {} },
 );
 
-has _workers => (
+has workers => (
     isa => ArrayRef,
     is => 'ro',
     lazy => 1,
@@ -61,6 +61,7 @@ has _workers => (
             1..$self->num_workers
         ];
     },
+    traits => ['Serialize'],
 );
 
 has _hit_max => (
@@ -71,12 +72,12 @@ has _hit_max => (
 
 sub BUILD {
     my $self = shift;
-    $self->_workers;
+    $self->workers;
 }
 
 sub _first_free_worker {
     my ($self) = @_;
-    (grep { $_->free } @{ $self->_workers })[0];
+    (grep { $_->free } @{ $self->workers })[0];
 }
 
 sub _do_run_job {
@@ -95,7 +96,7 @@ sub _do_run_job {
     do {
         $worker = $self->_first_free_worker;
         if (!$worker) {
-            warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->_workers}));
+            warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
             $self->_hit_max(AnyEvent->condvar)
                 unless $self->_has_hit_max;
             $self->_hit_max->recv;
@@ -103,7 +104,7 @@ sub _do_run_job {
             $self->_clear_hit_max;
         }
     } while (!$worker);
-    warn("Got free worker, running job");
+    warn("Got free worker, running job: " . $job);
 #    warn Data::Dumper::Dumper($job);
     $worker->run_job($job);
 }

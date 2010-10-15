@@ -77,8 +77,7 @@ CatalystX::JobServer::Web - Catalyst application part of CatalystX::JobServer
 The top level of the web application. Loads L<Catalyst> and L<Catalyst::Engine::PSGI>.
 
 Loads the config from the config file, and uses L<CatalystX::JobServer::Web::Plugin::ModelsFromConfig>
-to load all the application components and L<CatalystX::JobServer::Web::Plugin::AddRolesToComponents>
-to massage them.
+to load all the application components.
 
 =head1 SEE ALSO
 

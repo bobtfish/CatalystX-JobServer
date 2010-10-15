@@ -1,7 +1,8 @@
 package CatalystX::JobServer::JobRunner::Forked::WorkerState;
 use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
-use MooseX::Types::Moose qw/ HashRef Int CodeRef /;
+use MooseX::Types::Moose qw/ HashRef Int CodeRef Bool Str /;
+use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use AnyEvent;
 use AnyEvent::Handle;
 use namespace::autoclean;
@@ -9,6 +10,8 @@ use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
 use DateTime;
 use Coro;
+
+with 'CatalystX::JobServer::Role::Storage';
 
 foreach (qw/ ae write read sigchld/) {
     has "_${_}_handle" => (
@@ -18,13 +21,38 @@ foreach (qw/ ae write read sigchld/) {
     );
 }
 
-foreach (qw/ pid working_on worker_started_at respawn /) {
-    has $_ => (
-        is => 'rw',
-        clearer => "_clear_${_}",
-        init_arg => undef,
-    );
-}
+has pid => (
+    is => 'rw',
+    isa => Int,
+    clearer => "_clear_pid",
+    init_arg => undef,
+    traits => ['Serialize'],
+);
+
+has working_on => (
+    isa => Str,
+    is => 'rw',
+    clearer => "_clear_working_on",
+    init_arg => undef,
+    traits => ['Serialize'],
+);
+
+has worker_started_at => (
+    isa => ISO8601DateTimeStr,
+    coerce => 1,
+    is => 'rw',
+    clearer => "_clear_worker_started_at",
+    init_arg => undef,
+    traits => ['Serialize'],
+);
+
+has respawn => (
+    isa => Bool,
+    is => 'rw',
+    clearer => "_clear_respawn",
+    init_arg => undef,
+    traits => ['Serialize'],
+);
 
 sub free { ! shift->working_on }
 
@@ -46,6 +74,7 @@ has respawn_every => (
     is => 'ro',
     predicate => '_has_respawn_every',
     isa => Int,
+    traits => ['Serialize'],
 );
 
 has _respawn_every_timer => (

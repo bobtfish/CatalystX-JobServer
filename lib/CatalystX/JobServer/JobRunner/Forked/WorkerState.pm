@@ -9,7 +9,8 @@ use namespace::autoclean;
 use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
 use DateTime;
-use Coro;
+use Coro; # For killing dead processes after timeout.
+use namespace::autoclean;
 
 with 'CatalystX::JobServer::Role::Storage';
 
@@ -146,7 +147,7 @@ sub __on_error {
 
     async {
         my $cv = AnyEvent->condvar;
-        my $w = AnyEvent->timer( after => 1, cb => sub {
+        my $w = AnyEvent->timer( after => 10, cb => sub {
             if (kill 0, $pid) {
                 warn "Child $pid did not gracefully close, killing hard!";
                 kill 9, $pid;

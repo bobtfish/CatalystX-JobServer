@@ -5,7 +5,6 @@ use MooseX::Types::Moose qw/ Int Bool HashRef ArrayRef Str /;
 use Try::Tiny;
 use MooseX::Types::Structured qw/ Dict Optional /;
 use AnyEvent;
-use Coro;
 use Carp qw/ croak confess /;
 use aliased 'Net::RabbitFoot';
 use Data::Dumper;

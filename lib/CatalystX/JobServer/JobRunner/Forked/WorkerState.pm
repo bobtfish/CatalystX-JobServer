@@ -9,6 +9,7 @@ use namespace::autoclean;
 use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
 use DateTime;
+use JSON qw/ decode_json encode_json /;
 use Coro; # For killing dead processes after timeout.
 use namespace::autoclean;
 
@@ -31,7 +32,7 @@ has pid => (
 );
 
 has working_on => (
-    isa => Str,
+    isa => HashRef,
     is => 'rw',
     clearer => "_clear_working_on",
     init_arg => undef,
@@ -66,7 +67,7 @@ has job_finished_cb => (
 sub job_finished {
     my $self = shift;
     my $output = shift;
-    $self->job_finished_cb->($self->working_on, $output)
+    $self->job_finished_cb->(encode_json($self->working_on), $output)
         if $self->_has_job_finished_cb;
     $self->_clear_working_on;
 }
@@ -118,7 +119,7 @@ sub run_job {
 
     $self->_spawn_worker_if_needed;
 
-    $self->working_on($job);
+    $self->working_on(decode_json($job));
 #    warn Data::Dumper::Dumper($job);
     $self->_write_handle->syswrite("\x00" . $job . "\xff");
 }

@@ -2,7 +2,7 @@ package CatalystX::JobServer::TraitFor::Model::PublishSelf;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ Int /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
-use Coro;
+use Coro; # We call cede in BUILD.
 use AnyEvent;
 
 with qw/

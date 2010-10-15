@@ -84,13 +84,13 @@ before _remove_running => sub {
 sub register_listener {
     my ($self, $uuid, $h) = @_;
     return unless exists $self->jobs_by_uuid->{$uuid};
-    warn("Added listener");
+    warn("Added listener for $uuid");
     $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)} = $h;
 }
 
 sub remove_listener {
     my ($self, $uuid, $h) = @_;
-    warn("Removed listener");
+    warn("Removed listener for $uuid");
     delete $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)};
 }
 

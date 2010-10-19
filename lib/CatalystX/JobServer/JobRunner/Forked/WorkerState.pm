@@ -178,6 +178,15 @@ sub _spawn_worker_if_needed {
     my ($to_r, $to_w) = portable_pipe;
     my ($from_r, $from_w) = portable_pipe;
     my $pid = fork;
+    if (!defined $pid) {
+        undef $to_r;
+        undef $to_w;
+        undef $from_r;
+        undef $from_w;
+        warn("FORK ERROR!!!!");
+        sleep 3;
+        goto \&_spawn_worker_if_needed;
+    }
     if ($pid != 0) {
         # parent
         close( $to_r );

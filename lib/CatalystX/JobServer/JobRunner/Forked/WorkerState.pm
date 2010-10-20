@@ -134,7 +134,8 @@ sub __on_error {
     $self->_clear_respawn;
 
     my $pid = $self->pid;
-    warn "got error from child $pid, destroying handle: $msg\n";
+    my $error = "got error from child $pid, destroying handle: $msg\n";
+    warn $error;
 
     kill(15, $pid) if (kill 0, $pid);
     $hdl->destroy;
@@ -142,6 +143,9 @@ sub __on_error {
     $self->_clear_read_handle;
     $self->_clear_pid;
     $self->_clear_ae_handle;
+    if ($self->working_on) {
+        $self->job_finished($error);
+    }
     $self->_clear_working_on;
     $self->_clear_worker_started_at;
     $self->_clear_sigchld_handle;

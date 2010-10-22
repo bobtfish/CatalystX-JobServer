@@ -179,17 +179,19 @@ sub __on_read {
 sub _spawn_worker_if_needed {
     my ($self) = @_;
     return if $self->_write_handle;
+    my $die = sub { $::TERMINATE ? $::TERMINATE->croak(shift) : Carp::confess(shift) };
     my ($to_r, $to_w) = portable_pipe;
     my ($from_r, $from_w) = portable_pipe;
+    if (!$to_r or !$to_w or !$from_r or !$from_w) {
+        $die->("Ran out of filehandles trying to spawn sub process");
+    }
     my $pid = fork;
     if (!defined $pid) {
         undef $to_r;
         undef $to_w;
         undef $from_r;
         undef $from_w;
-        warn("FORK ERROR!!!!");
-        sleep 3;
-        goto \&_spawn_worker_if_needed;
+        $die->("FORK ERROR");
     }
     if ($pid != 0) {
         # parent

@@ -179,7 +179,7 @@ sub __on_read {
 sub _spawn_worker_if_needed {
     my ($self) = @_;
     return if $self->_write_handle;
-    my $die = sub { $::TERMINATE ? $::TERMINATE->croak(shift) : Carp::confess(shift) };
+    my $die = sub { Carp::cluck("Fatal error caught"); $::TERMINATE ? $::TERMINATE->croak(shift) : Carp::confess(shift) };
     my ($to_r, $to_w) = portable_pipe;
     my ($from_r, $from_w) = portable_pipe;
     if (!$to_r or !$to_w or !$from_r or !$from_w) {

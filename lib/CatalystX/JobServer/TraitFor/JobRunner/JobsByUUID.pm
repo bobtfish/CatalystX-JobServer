@@ -1,4 +1,4 @@
-package CatalystX::JobServer::JobRunner::JobsByUUID;
+package CatalystX::JobServer::TraitFor::JobRunner::JobsByUUID;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ HashRef /;
 use aliased 'CatalystX::JobServer::Job::Running';

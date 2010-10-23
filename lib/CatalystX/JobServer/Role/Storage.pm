@@ -2,27 +2,18 @@ package CatalystX::JobServer::Role::Storage;
 use CatalystX::JobServer::Moose::Role;
 use JSON::XS;
 use MooseX::Storage 0.28;
-use Set::Object;
 use CatalystX::JobServer::Meta::Attribute::Trait::Serialize ();
 use MooseX::Types::Moose qw/ ArrayRef /;
 use MooseX::Storage;
 use MooseX::Storage::Engine;
 use namespace::autoclean;
 
-MooseX::Storage::Engine->add_custom_type_handler(
-    'Set::Object' =>
-        expand => sub {},
-        collapse => sub {
-            my @members = $_[0]->members;
-            MooseX::Storage::Engine->find_type_handler( ArrayRef )->{collapse}->( \@members );
-        },
-);
 foreach my $type (qw/File Dir/) {
-MooseX::Storage::Engine->add_custom_type_handler(
-    'Path::Class::' . $type =>
-        expand => sub {},
-        collapse => sub { shift() . "" },
-);
+    MooseX::Storage::Engine->add_custom_type_handler(
+        'Path::Class::' . $type =>
+            expand => sub {},
+            collapse => sub { shift() . "" },
+    );
 }
 
 with Storage(engine => 'JSON'),

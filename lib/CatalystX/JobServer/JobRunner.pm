@@ -2,7 +2,6 @@ package CatalystX::JobServer::JobRunner;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ Int HashRef ArrayRef Str /;
 use AnyEvent::Util qw/ fork_call /;
-use MooseX::Types::Set::Object;
 use aliased 'CatalystX::JobServer::Job::Running';
 use aliased 'CatalystX::JobServer::Job::Finished';
 use Scalar::Util qw/ refaddr /;
@@ -44,65 +43,10 @@ has jobs_registered => (
     traits => ['Serialize'],
 );
 
-has jobs_by_uuid => (
-    is => 'ro',
-    traits    => ['Hash', 'Serialize'],
-    isa => HashRef[Running],
-    default => sub { {} },
-    handles   => {
-        _add_job_by_uuid => 'set',
-        _remove_job_by_uuid => 'delete',
-    },
-);
-
-has _jobs_by_uuid_handles => (
-    is => 'ro',
-    isa => HashRef,
-    default => sub { {} },
-);
-
-before _remove_job_by_uuid => sub {
-    my ($self, $uuid) = @_;
-    delete $self->_jobs_by_uuid_handles->{$uuid};
-};
-
-before _add_job_by_uuid => sub {
-    my ($self, $uuid) = @_;
-    $self->_jobs_by_uuid_handles->{$uuid} = {};
-};
-
-before _remove_running => sub {
-    my ($self, $job) = @_;
-    if (exists $job->job->{uuid}) {
-        warn("Sending messages to handles for " . $job->job->{uuid});
-        foreach my $h (values %{$self->_jobs_by_uuid_handles->{$job->job->{uuid}}}) {
-            $h->send_msg($job->pack);
-        }
-    }
-};
-
-sub register_listener {
-    my ($self, $uuid, $h) = @_;
-    return unless exists $self->jobs_by_uuid->{$uuid};
-    warn("Added listener for $uuid");
-    $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)} = $h;
-}
-
-sub remove_listener {
-    my ($self, $uuid, $h) = @_;
-    warn("Removed listener for $uuid");
-    delete $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)};
-}
-
 #with 'CatalystX::JobServer::Role::QueueConsumer::LogMessageStructured';
 sub consume_message {
-    my ($self, $message, $publisher) = @_;
-    $self->act_on_message($message->{body}->payload, $publisher);
-}
-
-sub act_on_message {
-    my ($self, $message, $publisher) = @_;
-    $self->run_job($message, $publisher);
+    my ($self, $message) = @_;
+    $self->run_job($message->{body}->payload);
 }
 
 sub job_finished {
@@ -120,9 +64,8 @@ sub job_failed {
 }
 
 sub run_job {
-    my ($self, $job, $return_cb) = @_;
-    Carp::confess("No return_cb") unless $return_cb;
-    my $running_job = Running->new(job => $job, return_cb => $return_cb);
+    my ($self, $job) = @_;
+    my $running_job = Running->new(job => $job);
 #    warn("do_run_job " . Dumper ($running_job));
     $self->_do_run_job($job);
     $self->_add_running($running_job);

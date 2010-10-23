@@ -15,17 +15,8 @@ use TestJob;
 
     extends 'CatalystX::JobServer::JobRunner::Forked';
 
-    has job_finished_cv => (
-        is => 'ro',
-        lazy => 1,
-        default => sub { AnyEvent->condvar },
-        clearer => 'clear_job_finished_cv',
-    );
-
-    after job_finished => sub {
-        my $self = shift;
-        do { $self->job_finished_cv->send; $self->clear_job_finished_cv; }
-            if $self->job_finished_cv;
+    with 'TestMethodCalledWithin' => {
+        method => 'job_finished',
     };
 
     __PACKAGE__->meta->make_immutable;
@@ -40,12 +31,10 @@ my $pid = $workerstate->pid;
 
 ok kill(0, $pid), 'Child PID started';
 
-my $timer = AnyEvent->timer( after => 5, cb => sub { $jobs->job_finished_cv->croak("timed out"); });
 is $jobs->jobs_running_count, 0;
 $jobs->run_job('{"__CLASS__": "TestJob"}');
 is $jobs->jobs_running_count, 1;
-lives_ok { $jobs->job_finished_cv->recv };
-undef $timer;
+$jobs->test_job_finished_called;
 is $jobs->jobs_running_count, 0;
 
 __END__

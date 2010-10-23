@@ -17,13 +17,18 @@ parameter wrap_type => (
     default => 'before',
 );
 
+parameter callback_name => (
+    isa => Str,
+    predicate => 'has_callback_name',
+);
+
 role {
     my $p = shift;
 
     my $name = $p->wrap;
+    my $callback_name = $p->has_callback_name ? $p->callback_name : $name . '_callback';
 
-    my $accessor = $name . '_callback';
-    has $accessor => (
+    has $callback_name => (
         isa => $code,
         is => 'ro',
         coerce => 1,
@@ -32,7 +37,7 @@ role {
 
     my $wrap = sub {
         my ($self, @args) = @_;
-        my $code = $self->$accessor;
+        my $code = $self->$callback_name;
         $self->$code(@args);
     };
     $p->wrap_type eq 'before' ? do { before $name => $wrap } : do { after $name => $wrap };

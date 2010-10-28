@@ -48,11 +48,12 @@ __PACKAGE__->config(
             },
         },
     },
-#    'View::HTML' => {
-#        INCLUDE_PATH => [
-#            __PACKAGE__->path_to(__PACKAGE__->config->{home}, "root"),
-#        ],
-#    }
+    'View::HTML' => {
+        INCLUDE_PATH => [
+            __PACKAGE__->path_to("root"),
+            __PACKAGE__->path_to("..", "root"),
+        ],
+    }
 );
 
 __PACKAGE__->setup();

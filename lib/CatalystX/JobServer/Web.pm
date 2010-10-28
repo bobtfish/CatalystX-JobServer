@@ -4,6 +4,7 @@ use Coro (); # Ensure loaded before AnyEvent
 use AnyEvent;
 use MooseX::Types::Moose qw/ Str /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
+use Moose::Autobox;
 use Sys::Hostname qw/ hostname /;
 
 use Catalyst::Runtime 5.80;

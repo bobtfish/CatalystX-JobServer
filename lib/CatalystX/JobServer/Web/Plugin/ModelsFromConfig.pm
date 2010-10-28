@@ -22,6 +22,29 @@ sub _setup_dynamic_models {
     }
 }
 
+after _setup_dynamic_models => sub {
+    my ($app) = @_;
+    my @models = grep { eval { $app->model($_)->isa('CatalystX::JobServer::JobRunner::Forked') } }
+        $app->models;
+    foreach my $model_name (@models) {
+        my $name = 'Controller::' . $model_name;
+        $app->config( $name => {
+            action => {
+                base => {
+                    PathPart => [ lc $model_name ],
+                }
+            },
+            model_name => $model_name,
+        });
+        warn("CONFIG $name");
+        CatalystX::InjectComponent->inject(
+            into => $app,
+            component => 'CatalystX::JobServer::Web::ControllerBase::ForkedJobRunner',
+            as => "$name",
+        );
+    }
+};
+
 1;
 
 =head1 NAME

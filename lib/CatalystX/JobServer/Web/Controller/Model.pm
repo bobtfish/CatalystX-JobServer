@@ -8,14 +8,26 @@ use namespace::autoclean;
 BEGIN { extends 'Catalyst::Controller' };
 with 'CatalystX::JobServer::Web::Role::Hippie';
 
-sub base : Chained('/base') PathPart('model') CaptureArgs(0) {}
+sub base : Chained('/base') PathPart('model') CaptureArgs(0) {
+    my ($self, $ctx) = @_;
+    $ctx->stash(
+        sub_action_for => sub {
+            warn Data::Dumper::Dumper(mro::get_linear_isa(ref($ctx->controller($ctx->stash->{component_name}))));
+            warn $ctx->controller($ctx->stash->{component_name});
+            $ctx->controller($ctx->stash->{component_name})->action_for(@_)
+        },
+    );
+}
 
 sub find : Chained('base') PathPart('') CaptureArgs(1) {
     my ($self, $c, $name) = @_;
     my $component = is_NonEmptySimpleStr($name)
         && $c->model($name)
         or $c->detach('/error404');
-    $c->stash(component => $component);
+    $c->stash(
+        component => $component,
+        component_name => $name,
+    );
 }
 
 sub inspect : Chained('find') PathPart('') Args(0) {

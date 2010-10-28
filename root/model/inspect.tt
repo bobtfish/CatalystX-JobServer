@@ -3,9 +3,9 @@ DATA: <pre>
 </pre>
 
 <ul>
-    <li><a href="[% c.uri_for_action('/model/forkedjobrunner/job/byname/list') %]">List of jobs</a></li>
-    <li><form action="[% c.uri_for_action('/model/forkedjobrunner/job/byuuid/redirect') %]" method="GET"><input type="text" name="uuid"><input type="submit" /></form></li>
-    <li><form action="[% c.uri_for_action('/model/forkedjobrunner/add_worker') %]" method="POST"><input type="submit" value="Add worker" /></form></li>
-   [% IF c.stash.component.can_remove_worker %]<li><form action="[% c.uri_for_action('/model/forkedjobrunner/remove_worker') %]" method="POST"><input type="submit" value="Remove worker" /></form></li>[% END %]
+    <li><a href="[% c.uri_for( sub_action_for('by_name_list'), [] ) %]">List of jobs</a></li>
+    <li><form action="[% c.uri_for( sub_action_for('by_uuid_redirect'), [] ) %]" method="GET"><input type="text" name="uuid"><input type="submit" /></form></li>
+    <li><form action="[% c.uri_for( sub_action_for('add_worker'), [] ) %]" method="POST"><input type="submit" value="Add worker" /></form></li>
+   [% IF c.stash.component.can_remove_worker %]<li><form action="[% c.uri_for( sub_action_for('remove_worker') ) %]" method="POST"><input type="submit" value="Remove worker" /></form></li>[% END %]   
 </ul>
 

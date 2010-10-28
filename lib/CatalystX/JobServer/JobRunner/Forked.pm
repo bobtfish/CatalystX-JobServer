@@ -20,7 +20,11 @@ has num_workers => (
     isa => Int,
     is => 'ro',
     default => 5,
-    traits => ['Serialize'],
+    traits => ['Serialize', 'Counter'],
+    handles => {
+        add_worker => 'inc',
+        remove_worker => 'dec',
+    },
 );
 
 has worker_state_class => (
@@ -76,28 +80,29 @@ sub BUILD {
     $self->workers;
 }
 
-sub add_worker {
+after add_worker => sub {
     my $self = shift;
     my $worker = $self->_new_worker;
     push(@{ $self->workers }, $worker);
     $self->_hit_max->send if $self->_hit_max
-}
+};
 
 sub can_remove_worker {
     my $self = shift;
     !! $self->_first_free_worker;
 }
 
-sub remove_worker {
-    my $self = shift;
+around remove_worker => sub {
+    my ($orig, $self) = @_;
     my @free = grep { $_->free } @{ $self->workers };
     return unless @free;
+    $self->$orig;
     my @busy = grep { !$_->free } @{ $self->workers };
     my $dead = pop @free;
     $self->_set_workers([@busy, @free]);
     $dead->kill_worker;
     return $dead;
-}
+};
 
 sub _first_free_worker {
     my ($self) = @_;

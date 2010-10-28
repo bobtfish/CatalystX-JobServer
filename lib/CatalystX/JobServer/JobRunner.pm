@@ -47,6 +47,7 @@ sub job_finished {
     my ($self, $job, $output) = @_;
     my $finished = Finished->new(job => $job);
     $finished->finalize();
+    warn("Remove running");
     $self->_remove_running($finished);
 }
 

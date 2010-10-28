@@ -14,7 +14,7 @@ after BUILD => sub {
             $self->mq;
             $self->_channel_objects;
             require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
-            for (1..100) {
+            for (1..10) {
                 my $job = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(val => rand(8));
                 warn("http://localhost:5000/model/forkedjobrunner/job/byuuid/" . $job->uuid . "\n");
                 $self->_channel_objects->{jobs}->publish(

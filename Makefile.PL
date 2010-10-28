@@ -12,7 +12,7 @@ requires 'Method::Signatures::Simple';
 requires 'Catalyst::Runtime' => '5.80022';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::View::TT';
-requires 'Catalyst::Action::RenderView';
+requires 'Catalyst::Action::REST' => '0.86';
 requires 'Moose';
 requires 'namespace::autoclean';
 requires 'YAML';

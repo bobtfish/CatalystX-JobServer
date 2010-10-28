@@ -44,6 +44,7 @@ Model::ForkedJobRunner:
         - PostForkCallback
         - JobFinishedCallback
         - PublishSelf
+        - JobsByUUID
     args:
         publish_self_every: 10
         publish_self_to: jobs

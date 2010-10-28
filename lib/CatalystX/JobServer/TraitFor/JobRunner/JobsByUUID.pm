@@ -2,6 +2,7 @@ package CatalystX::JobServer::TraitFor::JobRunner::JobsByUUID;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ HashRef /;
 use aliased 'CatalystX::JobServer::Job::Running';
+use Scalar::Util qw/ refaddr /;
 use namespace::autoclean;
 
 has jobs_by_uuid => (
@@ -67,3 +68,6 @@ sub remove_listener {
     warn("Removed listener for $uuid");
     delete $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)};
 }
+
+1;
+

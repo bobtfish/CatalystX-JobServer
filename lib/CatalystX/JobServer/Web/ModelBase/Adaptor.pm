@@ -20,7 +20,9 @@ sub _trait_namespace {
         }
         while ($class =~ s/::\w+$//);
         push(@list, 'CatalystX::JobServer::TraitFor::Model' . $class);
-        return \@list;
+        use Data::Dumper;
+        warn Dumper(\@list); 
+       return \@list;
     }
     return $class . '::TraitFor';
 }

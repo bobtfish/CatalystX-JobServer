@@ -2,3 +2,8 @@ DATA: <pre>
 [% json_encoder.encode(data) %]
 </pre>
 
+<ul>
+    <li><a href="[% c.uri_for_action('/model/forkedjobrunner/job/byname/list') %]">List of jobs</a></li>
+    <li><form action="[% c.uri_for_action('/model/forkedjobrunner/job/byuuid/redirect') %]" method="GET"><input type="text" name="uuid"><input type="submit" /></form></li>
+</ul>
+

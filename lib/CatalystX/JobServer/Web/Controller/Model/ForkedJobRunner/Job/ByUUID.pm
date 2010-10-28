@@ -6,6 +6,17 @@ with 'CatalystX::JobServer::Web::Role::Hippie';
 
 sub base : Chained('/model/forkedjobrunner/job/base') PathPart('byuuid') CaptureArgs(0) {}
 
+sub redirect : Chained('base') PathPart('') Args(0) {
+    my ($self, $c) = @_;
+    if ($c->req->parameters->{uuid}) {
+        $c->res->redirect($c->uri_for($self->action_for('find'), [ $c->req->parameters->{uuid} ]));
+    }
+    else {
+        $c->detach('/error404');
+    }
+}
+
+
 sub find : Chained('base') PathPart('') CaptureArgs(1) {
     my ($self, $c, $job_uuid) = @_;
     my $job_model = $c->model('ForkedJobRunner');

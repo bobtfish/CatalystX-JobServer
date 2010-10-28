@@ -24,16 +24,10 @@ has jobs_running_count => (
 sub _add_running {
     my ($self, $job) = @_;
     $self->_inc_running_job_count;
-    if (exists $job->job->{uuid}) {
-        $self->_add_job_by_uuid($job->job->{uuid}, $job);
-    }
 }
 sub _remove_running {
     my ($self, $job) = @_;
     $self->_dec_running_job_count;
-    if (exists $job->job->{uuid}) {
-        $self->_remove_job_by_uuid($job->job->{uuid}, $job);
-    }
 }
 
 has jobs_registered => (

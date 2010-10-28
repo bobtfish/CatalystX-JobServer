@@ -57,6 +57,16 @@ __PACKAGE__->config(
 __PACKAGE__->setup();
 __PACKAGE__->setup_engine('PSGI');
 
+# FIXME - Cheesy hack to make the message queue init last so that if you subscribe to
+#         queues with things waiting, you don't try doing work before workers are in place.
+around locate_components => sub {
+    my ($orig, $self, @args) = @_;
+    my @comps = $self->$orig(@args);
+    my $mq = grep { /MessageQueue/ } @comps;
+    my @other = grep { ! /MessageQueue/ } @comps;
+    return (@comps, $mq);
+};
+
 sub get_config_path {
     my $c = shift;
     my ($path, $extension) = $c->next::method(@_);

@@ -138,7 +138,7 @@ sub __on_error {
     warn $error;
 
     kill(15, $pid) if (kill 0, $pid);
-    $hdl->destroy;
+    $hdl->destroy if $hdl;
     $self->_clear_write_handle;
     $self->_clear_read_handle;
     $self->_clear_pid;

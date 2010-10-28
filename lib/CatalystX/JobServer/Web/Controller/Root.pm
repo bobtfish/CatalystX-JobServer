@@ -56,15 +56,22 @@ Attempt to render a view, if needed.
 
 =cut
 
-sub end : ActionClass('RenderView') {
+sub end : ActionClass('Serialize') {
     my ($self, $c) = @_;
-    if ($c->stash->{data}) {
-        if (blessed $c->stash->{data}) {
-            #$c->res->header('Content-Type', 'application/json');
-            $c->res->body($c->stash->{data}->freeze(1));
-        }
+    $c->stash(json_encoder => $self->action_for('end')->_encoders->{'JSON'}->encoder);
+    if (blessed($c->stash->{data})) {
+        $c->stash(data => $c->stash->{data}->pack);
     }
 }
+
+__PACKAGE__->config(
+    default => 'text/html',
+    stash_key => 'data',
+    map => {
+        'text/html' => [ 'View', 'HTML' ],
+        'application/json' => [ 'JSON' ],
+    },
+);
 
 =head1 AUTHOR
 

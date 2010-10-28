@@ -1,0 +1,4 @@
+DATA: <pre>
+[% json_encoder.encode(data) %]
+</pre>
+

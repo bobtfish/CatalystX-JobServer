@@ -47,15 +47,19 @@ __PACKAGE__->config(
             },
         },
     },
-    'View::HTML' => {
-        INCLUDE_PATH => [
-            __PACKAGE__->path_to("..", "root"),
-        ],
-    }
+#    'View::HTML' => {
+#        INCLUDE_PATH => [
+#            __PACKAGE__->path_to(__PACKAGE__->config->{home}, "root"),
+#        ],
+#    }
 );
 
 __PACKAGE__->setup();
 __PACKAGE__->setup_engine('PSGI');
+
+use Catalyst::Action::Serialize::JSON;
+__PACKAGE__->controller('Root')->action_for('end')->_encoders->{'JSON'} = Catalyst::Action::Serialize::JSON->new;
+__PACKAGE__->controller('Root')->action_for('end')->_encoders->{'JSON'}->encoder->pretty(1);
 
 # FIXME - Cheesy hack to make the message queue init last so that if you subscribe to
 #         queues with things waiting, you don't try doing work before workers are in place.

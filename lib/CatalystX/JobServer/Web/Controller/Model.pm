@@ -12,8 +12,6 @@ sub base : Chained('/base') PathPart('model') CaptureArgs(0) {
     my ($self, $ctx) = @_;
     $ctx->stash(
         sub_action_for => sub {
-            warn Data::Dumper::Dumper(mro::get_linear_isa(ref($ctx->controller($ctx->stash->{component_name}))));
-            warn $ctx->controller($ctx->stash->{component_name});
             $ctx->controller($ctx->stash->{component_name})->action_for(@_)
         },
     );

@@ -36,7 +36,6 @@ after _setup_dynamic_models => sub {
             },
             model_name => $model_name,
         });
-        warn("CONFIG $name");
         CatalystX::InjectComponent->inject(
             into => $app,
             component => 'CatalystX::JobServer::Web::ControllerBase::ForkedJobRunner',

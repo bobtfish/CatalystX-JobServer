@@ -42,6 +42,7 @@ has worker_config => (
 has workers => (
     isa => ArrayRef,
     is => 'ro',
+    writer => '_set_workers',
     lazy => 1,
     default => sub {
         my $self = shift;
@@ -73,6 +74,29 @@ has _hit_max => (
 sub BUILD {
     my $self = shift;
     $self->workers;
+}
+
+sub add_worker {
+    my $self = shift;
+    my $worker = $self->_new_worker;
+    push(@{ $self->workers }, $worker);
+    $self->_hit_max->send if $self->_hit_max
+}
+
+sub can_remove_worker {
+    my $self = shift;
+    !! $self->_first_free_worker;
+}
+
+sub remove_worker {
+    my $self = shift;
+    my @free = grep { $_->free } @{ $self->workers };
+    return unless @free;
+    my @busy = grep { !$_->free } @{ $self->workers };
+    my $dead = pop @free;
+    $self->_set_workers([@busy, @free]);
+    $dead->kill_worker;
+    return $dead;
 }
 
 sub _first_free_worker {

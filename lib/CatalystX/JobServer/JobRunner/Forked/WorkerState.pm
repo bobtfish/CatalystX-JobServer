@@ -129,6 +129,11 @@ sub spawn_new_worker {
     $self->__on_error($self->_ae_handle, undef, 'parent caused restart');
 }
 
+sub kill_worker {
+    my $self = shift;
+    $self->__on_error($self->_ae_handle, undef, 'parent killed ' . ($self->free ? 'was free' : 'was busy'));
+}
+
 sub __on_error {
     my ($self, $hdl, $fatal, $msg) = @_;
     $self->_clear_respawn;

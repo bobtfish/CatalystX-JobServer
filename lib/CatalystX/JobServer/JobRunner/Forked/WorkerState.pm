@@ -58,15 +58,14 @@ has respawn => (
 
 sub free { ! shift->working_on }
 
+# FIXME - Callback role
 has job_finished_cb => (
     isa => CodeRef,
     is => 'ro',
     predicate => '_has_job_finished_cb',
 );
 
-sub job_finished {
-    my $self = shift;
-    my $output = shift;
+method job_finished ($output) {
     $self->job_finished_cb->(encode_json($self->working_on), $output)
         if $self->_has_job_finished_cb;
     $self->_clear_working_on;
@@ -98,22 +97,19 @@ has _respawn_every_timer => (
     init_arg => undef,
 );
 
-sub BUILD {
-    my $self = shift;
+method BUILD {
     $self->_spawn_worker_if_needed;
     $self->_respawn_every_timer
         if $self->_has_respawn_every;
 }
 
-sub DEMOLISH {
-    my $self = shift;
+method DEMOLISH {
     # Quit all our workers
     kill 15, $self->pid
         if $self->pid;
 }
 
-sub run_job {
-    my ($self, $job) = @_;
+method run_job ($job) {
 
     confess("Already working!") if $self->working_on;
 
@@ -124,18 +120,15 @@ sub run_job {
     $self->_write_handle->syswrite("\x00" . $job . "\xff");
 }
 
-sub spawn_new_worker {
-    my $self = shift;
+method spawn_new_worker {
     $self->__on_error($self->_ae_handle, undef, 'parent caused restart');
 }
 
-sub kill_worker {
-    my $self = shift;
+method kill_worker {
     $self->__on_error($self->_ae_handle, undef, 'parent killed ' . ($self->free ? 'was free' : 'was busy'));
 }
 
-sub __on_error {
-    my ($self, $hdl, $fatal, $msg) = @_;
+method __on_error ($self, $hdl, $fatal, $msg) {
     $self->_clear_respawn;
 
     my $pid = $self->pid;
@@ -169,20 +162,22 @@ sub __on_error {
     };
 }
 
-sub __on_read {
-    my ($self, $hdl) = @_;
+method __on_read ($hdl) {
     my $buf = $hdl->{rbuf};
     $hdl->{rbuf} = '';
-#               warn("PARENT HANDLE DID READ");
     while ( $self->get_json_from_buffer(\$buf, sub {
-#                   warn("GOT FINISHED JOB " . Data::Dumper::Dumper($running));
-        $self->job_finished(shift);
-        $self->spawn_new_worker if $self->respawn;
+        my $data = shift;
+        if ($data->is_complete)
+            $self->job_finished($data);
+            $self->spawn_new_worker if $self->respawn;
+        }
+        else {
+            $self->update_status($data);
+        }
     })) { 1 }
 }
 
-sub _spawn_worker_if_needed {
-    my ($self) = @_;
+method _spawn_worker_if_needed {
     return if $self->_write_handle;
     my $die = sub { Carp::cluck("Fatal error caught"); $::TERMINATE ? $::TERMINATE->croak(shift) : Carp::confess(shift) };
     my ($to_r, $to_w) = portable_pipe;

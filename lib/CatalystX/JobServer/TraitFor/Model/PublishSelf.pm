@@ -6,7 +6,7 @@ use Coro; # We call cede in BUILD.
 use AnyEvent;
 
 with qw/
-    CatalystX::JobServer::Role::QueuePublisher
+    CatalystX::JobServer::Role::MessageQueue::Publisher
     CatalystX::JobServer::Role::Storage
 /;
 
@@ -35,7 +35,7 @@ has _publish_timer => (
             cb => sub {
                 my $frozen = $self->freeze;
                 #warn("Publishing #self from timer\n");
-                $self->publish_message($self->publish_self_to, $self->freeze);
+                $self->publish_message($self->freeze, '#', $self->publish_self_to);
             },
         );
     },
@@ -44,7 +44,6 @@ has _publish_timer => (
 
 sub BUILD {}
 after BUILD => sub {
-    Coro::cede; # Try to make it likely we've connected to MQ before we try publishing anything.
     shift->_publish_timer;
 };
 

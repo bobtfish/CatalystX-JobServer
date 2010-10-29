@@ -74,8 +74,6 @@ Also passes a couple of custom parameters which can be used by components which 
 
 =over
 
-=item publish_message_callback
-
 =item model_locator_callback
 
 =back

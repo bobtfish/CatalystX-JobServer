@@ -11,6 +11,7 @@ use CatalystX::JobServer::Job::Running;
 use DateTime;
 use JSON qw/ decode_json encode_json /;
 use Coro; # For killing dead processes after timeout.
+use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete';
 use namespace::autoclean;
 
 with 'CatalystX::JobServer::Role::Storage';
@@ -128,7 +129,7 @@ method kill_worker {
     $self->__on_error($self->_ae_handle, undef, 'parent killed ' . ($self->free ? 'was free' : 'was busy'));
 }
 
-method __on_error ($self, $hdl, $fatal, $msg) {
+method __on_error ($hdl, $fatal, $msg) {
     $self->_clear_respawn;
 
     my $pid = $self->pid;
@@ -167,7 +168,9 @@ method __on_read ($hdl) {
     $hdl->{rbuf} = '';
     while ( $self->get_json_from_buffer(\$buf, sub {
         my $data = shift;
-        if ($data->is_complete)
+        Class::MOP::load_class($data->{__CLASS__});
+        my $data = $data->{__CLASS__}->unpack($data);
+        if ($data->is_complete) {
             $self->job_finished($data);
             $self->spawn_new_worker if $self->respawn;
         }

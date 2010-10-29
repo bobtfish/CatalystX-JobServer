@@ -1,13 +1,15 @@
 package CatalystX::JobServer::Role::MessageQueue::HasChannel;
 use CatalystX::JobServer::Moose::Role;
 
-with 'Catalyst::Component::ApplicationAttribute';
+has message_queue_model => (
+    is => 'ro',
+);
 
 has _channel => (
     is => 'ro',
     lazy => 1,
     default => sub {
-        shift->_application->model('MessageQueue')->open_channel;
+        shift->message_queue_model->open_channel;
     }
 );
 

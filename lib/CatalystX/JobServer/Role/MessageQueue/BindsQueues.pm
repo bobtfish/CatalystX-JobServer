@@ -5,7 +5,7 @@ use Data::Dumper;
 with 'CatalystX::JobServer::Role::MessageQueue::HasChannel';
 
 method bind_queue ($queue_name, $exchange_name, $routing_key) {
-    my $bind_frame = $channel->bind_queue(
+    my $bind_frame = $self->_channel->bind_queue(
        queue => $queue_name,
        exchange => $exchange_name,
        routing_key => $routing_key,

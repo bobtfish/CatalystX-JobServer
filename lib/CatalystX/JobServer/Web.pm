@@ -70,7 +70,7 @@ around locate_components => sub {
     my @comps = $self->$orig(@args);
     my $mq = grep { /MessageQueue/ } @comps;
     my @other = grep { ! /MessageQueue/ } @comps;
-    return (@comps, $mq);
+    return ( $mq, @comps );
 };
 
 sub get_config_path {

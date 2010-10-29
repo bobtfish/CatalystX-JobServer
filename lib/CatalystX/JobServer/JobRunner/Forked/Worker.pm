@@ -7,6 +7,8 @@ use Try::Tiny;
 use IO::Handle;
 use IO::Select;
 use POSIX qw( EAGAIN );
+use Scalar::Util qw/ blessed /;
+use CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete;
 
 method run {
     $0 = 'perl jobserver_worker [idle]';
@@ -35,12 +37,13 @@ method run {
     }
 }
 
-method json_object ($json) {
+method json_object ($data) {
     $0 = 'perl jobserver_worker [starting job]';
     my ($instance, $ret);
     my $running_class;
     my $class = try {
-        my $data = from_json($json);
+        use Data::Dumper;
+        warn Dumper($data);
         $running_class = to_LoadableClass($data->{__CLASS__})
             or die("Coud not load class " . $data->{__CLASS__});
         $instance = $running_class->unpack($data);
@@ -51,15 +54,18 @@ method json_object ($json) {
     };
     $0 = "perl jobserver_worker [running $running_class]";
     try {
-        $ret = $instance->run;
+        my $cb = sub { local $@; eval { print "\x00" . shift->freeze . "\xff" } };
+        $ret = $instance->run($cb);
     }
     catch {
         warn "CAUGHT EXCEPTION RUNNING: $_ dieing..";
         exit 1;
     };
     try {
+        my $complete = $ret if ($ret && blessed($ret) && $ret->can('is_complete') && $ret->is_complete);
+        $complete = CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete->new;
 #        warn("IN WORKER DONE");
-        print "\x00" . $ret->freeze . "\xff";
+        print "\x00" . $complete->freeze . "\xff";
     }
     catch {
         warn "CAUGHT EXCEPTION FREEZING RESPONSE: $_ dieing..";

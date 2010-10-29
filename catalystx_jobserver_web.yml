@@ -1,28 +1,11 @@
 ---
 name: "CatalystX::JobServer::Web"
 Model::MessageQueue:
-    class: "CatalystX::JobServer::MessageQueue"
-    traits:
-        - "+CatalystX::JobServer::TraitFor::MessageQueue::SendTestJobs"
     args:
         port: 5672
         host: localhost
         vhost: /
         channels:
-            jobs:
-                exchanges:
-                    - type: topic
-                      durable: 1
-                      exchange: jobs
-                queues:
-                    - queue: jobs_queue
-                      durable: 1
-                      bind:
-                        exchange: jobs
-                        routing_key: "#"
-                dispatch_to: ForkedJobRunner
-                results_exchange: firehose
-                results_routing_key: ""
             firehose:
                 exchanges:
                     - type: topic
@@ -41,13 +24,16 @@ Model::MessageQueue:
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     traits:
+        - SendTestJobs
         - PostForkCallback
         - JobFinishedCallback
         - PublishSelf
         - JobsByUUID
     args:
+        exchange_name: jobs
+        queue_name: jobs_queue
         publish_self_every: 10
-        publish_self_to: jobs
+        publish_self_to: firehose
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
         job_finished_callback: "warn('JOB FINISHED')"

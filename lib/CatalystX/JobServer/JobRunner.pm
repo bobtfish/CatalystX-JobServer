@@ -37,7 +37,10 @@ has jobs_registered => (
     traits => ['Serialize'],
 );
 
-#with 'CatalystX::JobServer::Role::QueueConsumer::LogMessageStructured';
+with qw/
+    CatalystX::JobServer::Role::MessageQueue::BindsAQueue
+    CatalystX::JobServer::Role::MessageQueue::Consumer
+/;
 sub consume_message {
     my ($self, $message) = @_;
     $self->run_job($message->{body}->payload);

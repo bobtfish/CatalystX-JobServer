@@ -126,6 +126,7 @@ sub _do_run_job {
         $worker = $self->_first_free_worker;
         if (!$worker) {
             warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
+            #$self->cancel_consumer;
             $self->_hit_max(AnyEvent->condvar)
                 unless $self->_has_hit_max;
             $self->_hit_max->recv;

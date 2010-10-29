@@ -12,7 +12,7 @@ sub _setup_dynamic_models {
     my $config = $app->config || {};
 
     foreach my $model_name ( grep { /^$model_prefix/ } keys %$config ) {
-        unless ($app->component) {
+        unless ($app->component($model_name)) {
             CatalystX::InjectComponent->inject(
                 into => $app,
                 component => 'CatalystX::JobServer::Web::ModelBase::Adaptor',

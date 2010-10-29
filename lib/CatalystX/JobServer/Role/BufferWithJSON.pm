@@ -1,5 +1,6 @@
 package CatalystX::JobServer::Role::BufferWithJSON;
 use CatalystX::JobServer::Moose::Role;
+use JSON;
 
 method get_json_from_buffer ($buf_ref, $code_ref) {
     Carp::confess("AGGGHH") unless ref($code_ref) eq 'CODE';
@@ -8,7 +9,7 @@ method get_json_from_buffer ($buf_ref, $code_ref) {
         my $json = substr($$buf_ref, 0, $index+1, '');
         substr($json, length($json)-1, 1, ''); # Chop trailing \xff
         substr($json, 0, 1, '');               # Chop leading  \x00
-        $code_ref->($json);
+        $code_ref->(from_json($json));
         return 1;
     }
     return;

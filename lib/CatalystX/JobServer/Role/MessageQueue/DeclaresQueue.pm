@@ -2,7 +2,7 @@ package CatalystX::JobServer::Role::MessageQueue::DeclaresQueue;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::Moose qw/ Bool /;
-use Moose::Util::TypeConatraints;
+use Moose::Util::TypeConstraints;
 
 with 'CatalystX::JobServer::Role::MessageQueue::HasChannel';
 

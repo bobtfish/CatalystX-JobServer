@@ -51,7 +51,7 @@ sub COMPONENT {
     $self->build_instance_with_traits(
         $self->class,
         {
-            publish_message_callback => sub { $app->model('MessageQueue')->publish_to_channel( @_ ) },
+            message_queue_model => $app->model('MessageQueue'),
             model_locator_callback => sub { $app->model(@_) },
             $self->has_traits ? (traits => $self->traits) : (),
             %{ $self->args },

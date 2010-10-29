@@ -8,7 +8,7 @@ with 'CatalystX::JobServer::Role::MessageQueue::HasChannel';
 requires 'consume_message';
 
 after BUILD => sub {
-    shift->build_consumer;
+    shift->build_messagequeue_consumer;
 };
 
 has _have_built_consumer => (
@@ -17,8 +17,7 @@ has _have_built_consumer => (
     default => 0,
 );
 
-method build_consumer {
-    warn("BUILD CONSUMER FOR $self");
+method build_messagequeue_consumer {
     return if $self->_have_built_consumer;
     $self->_have_built_consumer(1);
     $self->_channel->consume(
@@ -26,14 +25,15 @@ method build_consumer {
             my $message = shift;
             $self->consume_message($message);
         },
-        consumer_tag => ref($self),
+        consumer_tag => refaddr($self),
     )
 }
 
-method cancel_consumer {
-    $self->_channel->cancel( sub { warn("Cancelled queue"); $self->_have_built_consumer(0); },
+method cancel_messagequeue_consumer {
+    $self->_channel->cancel(
         consumer_tag => refaddr($self),
     );
+    $self->_have_built_consumer(0);
 }
 
 1;

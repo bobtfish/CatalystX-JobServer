@@ -169,7 +169,7 @@ method __on_read ($hdl) {
     while ( $self->get_json_from_buffer(\$buf, sub {
         my $data = shift;
         Class::MOP::load_class($data->{__CLASS__});
-        my $data = $data->{__CLASS__}->unpack($data);
+        $data = $data->{__CLASS__}->unpack($data);
         if ($data->is_complete) {
             $self->job_finished($data);
             $self->spawn_new_worker if $self->respawn;

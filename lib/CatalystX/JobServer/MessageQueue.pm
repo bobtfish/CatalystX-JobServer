@@ -275,7 +275,7 @@ sub _build_binding_for_queue {
     $self->_inc_no_of_bindings_registered;
 }
 
-sub BUILD { shift->_channel_objects; warn("BUILT MQ"); }
+sub BUILD { shift->_channel_objects; }
 
 sub DEMOLISH {
     my ($self) = shift;

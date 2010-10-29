@@ -125,10 +125,10 @@ sub _do_run_job {
     do {
         $worker = $self->_first_free_worker;
         if (!$worker) {
-            warn("Hit max number of concurrent workers, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
-            #$self->cancel_consumer;
+            warn("Hit max number of concurrent workers HARD, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
             $self->_hit_max(AnyEvent->condvar)
                 unless $self->_has_hit_max;
+            async { $self->cancel_messagequeue_consumer };
             $self->_hit_max->recv;
             warn("Job finished, waking up");
             $self->_clear_hit_max;
@@ -137,8 +137,19 @@ sub _do_run_job {
     warn("Got free worker, running job: " . $job);
 #    warn Data::Dumper::Dumper($job);
     $worker->run_job($job);
+    unless ($self->_first_free_worker) {
+        warn("Hit max number of concurrent workers SOFT, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
+        async { # Canceling subscription to a queue blocks the thread. Don't do it in a callback or event loop blocks
+                # itself (bad). This is also why we still have the Condvar serializing access above!
+            $self->cancel_messagequeue_consumer;
+        };
+    }
 }
 
+after _remove_running => sub {
+    my $self = shift;
+    $self->build_messagequeue_consumer if $self->_first_free_worker;
+};
 
 __PACKAGE__->meta->make_immutable;
 1;

@@ -29,7 +29,6 @@ has _exchange => (
     lazy => 1,
     default => sub {
         my $self = shift;
-        warn("ABOUT TO DECLARE EXCHANGE");
         my $exch_frame = $self->_channel->declare_exchange(
             type => $self->exchange_type,
             durable => $self->exchange_durable,

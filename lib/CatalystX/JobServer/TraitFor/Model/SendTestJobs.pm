@@ -10,11 +10,9 @@ method BUILD {}
 
 after BUILD => sub {
     my ($self, $args) = @_;
-    warn("WIBBLE");
     async {
         $::RUNNING->recv if $::RUNNING; # Wait till everything is started.
         try {
-            warn("QUACK");
             require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
             for (1..10) {
                 my $job = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(val => rand(8));

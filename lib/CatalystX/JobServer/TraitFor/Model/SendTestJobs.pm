@@ -16,7 +16,7 @@ after BUILD => sub {
             require CatalystX::JobServer::Job::Test::RunForThirtySeconds;
             for (1..10) {
                 my $job = CatalystX::JobServer::Job::Test::RunForThirtySeconds->new(val => rand(8));
-                warn("http://localhost:5000/model/forkedjobrunner/job/byuuid/" . $job->uuid . "\n");
+                warn("http://localhost:5000/model/forkedjobrunner/by_uuid/" . $job->uuid . "\n");
                 $self->publish_message($job->freeze);
                 cede;
             }

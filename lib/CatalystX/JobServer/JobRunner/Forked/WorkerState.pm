@@ -67,6 +67,12 @@ has job_finished_cb => (
     predicate => '_has_job_finished_cb',
 );
 
+has update_status_cb => (
+    isa => CodeRef,
+    is => 'ro',
+    predicate => '_has_update_status_cb',
+);
+
 method job_finished ($output) {
     $self->job_finished_cb->(encode_json($self->working_on), $output)
         if $self->_has_job_finished_cb;
@@ -130,7 +136,9 @@ method kill_worker {
     $self->__on_error($self->_ae_handle, undef, 'parent killed ' . ($self->free ? 'was free' : 'was busy'));
 }
 
-method update_status {}
+method update_status ($data) {
+    $self->update_status_cb->($self->working_on, $data) if $self->_has_update_status_cb;
+}
 
 method __on_error ($hdl, $fatal, $msg) {
     $self->_clear_respawn;

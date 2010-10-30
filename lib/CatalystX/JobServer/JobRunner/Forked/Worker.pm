@@ -42,8 +42,6 @@ method json_object ($data) {
     my ($instance, $ret);
     my $running_class;
     my $class = try {
-        use Data::Dumper;
-        warn Dumper($data);
         $running_class = to_LoadableClass($data->{__CLASS__})
             or die("Coud not load class " . $data->{__CLASS__});
         $instance = $running_class->unpack($data);

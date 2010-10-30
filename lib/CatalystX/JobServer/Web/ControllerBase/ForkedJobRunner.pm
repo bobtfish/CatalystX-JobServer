@@ -65,12 +65,12 @@ sub display : Chained('by_name') PathPart('') Args(0) {
     my ($self, $c) = @_;
 }
 
-sub by_uuid : Chained('base') PathPart('byuuid') CaptureArgs(0) {}
+sub by_uuid : Chained('base') PathPart('by_uuid') CaptureArgs(0) {}
 
 sub by_uuid_redirect : Chained('by_uuid') PathPart('') Args(0) {
     my ($self, $c) = @_;
     if ($c->req->parameters->{uuid}) {
-        $c->res->redirect($c->uri_for($self->action_for('find'), [ $c->req->parameters->{uuid} ]));
+        $c->res->redirect($c->uri_for($self->action_for('find_by_uuid'), [ $c->req->parameters->{uuid} ]));
     }
     else {
         $c->detach('/error404');
@@ -81,6 +81,7 @@ sub by_uuid_redirect : Chained('by_uuid') PathPart('') Args(0) {
 sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     my ($self, $c, $job_uuid) = @_;
     my $job_model = $c->model('ForkedJobRunner');
+    use Data::Dumper; warn Dumper([$job_uuid, $job_model->jobs_by_uuid]);
     my $job = $job_model->jobs_by_uuid->{$job_uuid}
         or $c->detach('/error404');
     $c->stash(
@@ -92,6 +93,7 @@ sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
 
 sub display_by_uuid : Chained('find_by_uuid') PathPart('') Args(0) {
     my ($self, $c) = @_;
+    $c->stash(template => 'display_job_by_uuid.tt');
 }
 
 sub hippie_init {

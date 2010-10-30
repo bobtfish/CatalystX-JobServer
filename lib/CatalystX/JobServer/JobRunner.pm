@@ -37,39 +37,38 @@ has jobs_registered => (
     traits => ['Serialize'],
 );
 
-with qw/
-    CatalystX::JobServer::Role::MessageQueue::BindsAQueue
-    CatalystX::JobServer::Role::MessageQueue::Consumer
-/;
-sub consume_message {
-    my ($self, $message) = @_;
+method consume_message ($message) {
     $self->run_job($message->{body}->payload);
 }
 
-sub job_finished {
-    my ($self, $job, $output) = @_;
+method job_finished ($job, $output){
     my $finished = Finished->new(job => $job);
     $finished->finalize();
     warn("Remove running");
     $self->_remove_running($finished);
 }
 
-sub job_failed {
-    my ($self, $job, $error) = @_;
+method job_failed ($job, $error) {
     my $finished = Finished->new(job => $job, ok => 0);
     $finished->finalize;
     $self->_remove_running($finished);
 }
 
-sub run_job {
-    my ($self, $job) = @_;
+method run_job ($job) {
     my $running_job = Running->new(job => $job);
 #    warn("do_run_job " . Dumper ($running_job));
     $self->_do_run_job($job);
     $self->_add_running($running_job);
 }
 
+method update_status ($job, $data) { }
+
 requires '_do_run_job';
+
+with qw/
+    CatalystX::JobServer::Role::MessageQueue::BindsAQueue
+    CatalystX::JobServer::Role::MessageQueue::Consumer
+/;
 
 1;
 

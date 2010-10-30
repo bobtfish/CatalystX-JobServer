@@ -3,6 +3,8 @@ use CatalystX::JobServer::Moose;
 use AnyEvent;
 use Data::UUID;
 use MooseX::Types::Moose qw/ Num Str /;
+use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::StatusLine';
+use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::CompletionEstimate';
 
 with 'CatalystX::JobServer::Role::Storage';
 
@@ -23,8 +25,12 @@ has uuid => (
     },
 );
 
-method run {
-    sleep 3 + int($self->val);
+method run ($cb) {
+    for (1..10) {
+        sleep 3 + int($self->val);
+        $cb->(StatusLine->new("Hello there, this is loop iteration $_"));
+        $cb->(CompletionEstimate->new(step_count => 10, steps_taken => $_));
+    }
     return $self;
 }
 

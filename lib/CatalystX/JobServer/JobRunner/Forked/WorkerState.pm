@@ -130,6 +130,8 @@ method kill_worker {
     $self->__on_error($self->_ae_handle, undef, 'parent killed ' . ($self->free ? 'was free' : 'was busy'));
 }
 
+method update_status {}
+
 method __on_error ($hdl, $fatal, $msg) {
     $self->_clear_respawn;
 

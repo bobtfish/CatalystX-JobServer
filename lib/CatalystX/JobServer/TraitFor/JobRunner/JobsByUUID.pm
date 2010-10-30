@@ -54,6 +54,12 @@ before _remove_running => sub {
     }
 };
 
+before update_status => sub {
+    my ($self, $job, $data) = @_;
+    $self->notify_listeners($job->{uuid}, $data)
+        if $job->{uuid};
+};
+
 method notify_listeners ($uuid, $data) {
     return unless exists $self->_jobs_by_uuid_handles->{$uuid};
     foreach my $h (values %{$self->_jobs_by_uuid_handles->{$uuid}}) {

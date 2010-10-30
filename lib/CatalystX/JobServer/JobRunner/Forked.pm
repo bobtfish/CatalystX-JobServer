@@ -5,8 +5,6 @@ use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use namespace::autoclean;
 
-with 'CatalystX::JobServer::JobRunner';
-
 has started_at => (
     isa => ISO8601DateTimeStr,
     is => 'ro',
@@ -56,10 +54,11 @@ has workers => (
                 $self->_new_worker(
                     %{ $self->worker_config },
                     job_finished_cb => sub {
-                        my $job = shift;
-                        my $output = shift;
-                        $self->job_finished($job, $output);
+                        $self->job_finished(shift, shift);
                         $self->_hit_max->send if $self->_hit_max
+                    },
+                    status_update_cb => sub {
+                        $self->update_status(shift, shift);
                     },
                 )
             }
@@ -75,8 +74,7 @@ has _hit_max => (
     predicate => '_has_hit_max',
 );
 
-sub BUILD {
-    my $self = shift;
+method BUILD {
     $self->workers;
 }
 
@@ -87,8 +85,7 @@ after add_worker => sub {
     $self->_hit_max->send if $self->_hit_max
 };
 
-sub can_remove_worker {
-    my $self = shift;
+method can_remove_worker {
     !! $self->_first_free_worker;
 }
 
@@ -104,8 +101,7 @@ around remove_worker => sub {
     return $dead;
 };
 
-sub _first_free_worker {
-    my ($self) = @_;
+method _first_free_worker {
     (grep { $_->free } @{ $self->workers })[0];
 }
 
@@ -128,7 +124,7 @@ sub _do_run_job {
             warn("Hit max number of concurrent workers HARD, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
             $self->_hit_max(AnyEvent->condvar)
                 unless $self->_has_hit_max;
-            async { $self->cancel_messagequeue_consumer };
+            $self->cancel_messagequeue_consumer;
             $self->_hit_max->recv;
             warn("Job finished, waking up");
             $self->_clear_hit_max;
@@ -143,11 +139,6 @@ sub _do_run_job {
     }
 }
 
-after _remove_running => sub {
-    my $self = shift;
-    $self->build_messagequeue_consumer if $self->_first_free_worker;
-};
-
 has suspend => (
     is => 'rw',
     isa => Bool,
@@ -158,6 +149,13 @@ has suspend => (
     },
     traits => ['Serialize'],
 );
+
+with 'CatalystX::JobServer::JobRunner';
+
+after _remove_running => sub {
+    my $self = shift;
+    $self->build_messagequeue_consumer if $self->_first_free_worker;
+};
 
 around build_messagequeue_consumer => sub {
     my ($orig, $self, @args) = @_;

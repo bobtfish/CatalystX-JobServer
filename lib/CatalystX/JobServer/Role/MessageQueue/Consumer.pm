@@ -22,7 +22,7 @@ has _have_built_consumer => (
 method build_messagequeue_consumer {
     return if $self->_have_built_consumer;
     $self->_have_built_consumer(1);
-    $self->_channel->consume(
+    $self->_channel->{arc}->consume(
         on_consume => sub {
             my $message = shift;
             try {
@@ -33,18 +33,25 @@ method build_messagequeue_consumer {
             };
         },
         consumer_tag => refaddr($self),
-    )
+        on_success => sub {
+            $self->_have_built_consumer(1);
+        },
+        on_failure => sub {
+            Carp::cluck("Failed to start message consumer in $self response " . Dumper(@_));
+        },
+    );
 }
 
 method cancel_messagequeue_consumer {
     $self->_channel->{arc}->cancel( # Use the nonblocking interface directly as we'll likely be called from callbacks
         consumer_tag => refaddr($self),
-        on_success => sub {},
+        on_success => sub {
+            $self->_have_built_consumer(0);
+        },
         on_failure => sub {
             Carp::cluck("Failed to cancel message consumer in $self response " . Dumper(@_));
         },
     );
-    $self->_have_built_consumer(0);
 }
 
 1;

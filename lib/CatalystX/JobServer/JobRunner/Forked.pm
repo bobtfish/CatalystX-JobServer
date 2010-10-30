@@ -1,6 +1,6 @@
 package CatalystX::JobServer::JobRunner::Forked;
 use CatalystX::JobServer::Moose;
-use MooseX::Types::Moose qw/ ArrayRef HashRef Int /;
+use MooseX::Types::Moose qw/ ArrayRef HashRef Int Bool /;
 use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use namespace::autoclean;

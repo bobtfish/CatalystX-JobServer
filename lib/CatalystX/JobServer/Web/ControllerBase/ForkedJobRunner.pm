@@ -77,6 +77,13 @@ sub by_uuid_redirect : Chained('by_uuid') PathPart('') Args(0) {
     }
 }
 
+__PACKAGE__->config(
+    action => {
+        hippie => {
+            Chained => [ 'find_by_uuid' ],
+        }
+    },
+);
 
 sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     my ($self, $c, $job_uuid) = @_;
@@ -84,10 +91,14 @@ sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     use Data::Dumper; warn Dumper([$job_uuid, $job_model->jobs_by_uuid]);
     my $job = $job_model->jobs_by_uuid->{$job_uuid}
         or $c->detach('/error404');
+
+    my $path = $c->uri_for($self->action_for('display_by_uuid'), $c->req->captures)->path;
+    $path =~ s{/$}{};
     $c->stash(
         job => $job,
         job_uuid => $job_uuid,
         job_model => $job_model,
+        hippie_path => $path,
     );
 }
 

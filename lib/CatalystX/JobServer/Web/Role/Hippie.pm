@@ -34,11 +34,6 @@ has handlers => (
     },
 );
 
-before base => sub {
-    my ($self, $c) = @_;
-    $c->stash( hippie_uri_path => $c->req->uri->path );
-};
-
 sub hippie : Chained('find') PathPart('_hippie') Args() {
     my ($self, $c, $type, $arg) = @_;
 

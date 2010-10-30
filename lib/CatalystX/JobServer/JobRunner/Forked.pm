@@ -8,7 +8,7 @@ use namespace::autoclean;
 has started_at => (
     isa => ISO8601DateTimeStr,
     is => 'ro',
-    coerce => 1,
+    coerce => 5,
     default => sub { DateTime->now },
     init_arg => undef,
     traits => ['Serialize'],
@@ -17,7 +17,7 @@ has started_at => (
 has num_workers => (
     isa => Int,
     is => 'ro',
-    default => 5,
+    default => 1,
     traits => ['Serialize', 'Counter'],
     handles => {
         add_worker => 'inc',
@@ -57,8 +57,10 @@ has workers => (
                         $self->job_finished(shift, shift);
                         $self->_hit_max->send if $self->_hit_max
                     },
-                    status_update_cb => sub {
-                        $self->update_status(shift, shift);
+                    update_status_cb => sub {
+                        my ($job, $data) = @_;
+                        $data = $data->pack if blessed($data);
+                        $self->update_status($job, $data);
                     },
                 )
             }

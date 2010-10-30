@@ -139,10 +139,7 @@ sub _do_run_job {
     $worker->run_job($job);
     unless ($self->_first_free_worker) {
         warn("Hit max number of concurrent workers SOFT, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
-        async { # Canceling subscription to a queue blocks the thread. Don't do it in a callback or event loop blocks
-                # itself (bad). This is also why we still have the Condvar serializing access above!
-            $self->cancel_messagequeue_consumer;
-        };
+        $self->cancel_messagequeue_consumer;
     }
 }
 

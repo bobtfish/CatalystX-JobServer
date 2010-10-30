@@ -2,6 +2,7 @@ package CatalystX::JobServer::Role::MessageQueue::Consumer;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ Bool /;
 use Scalar::Util qw/ refaddr /;
+use Data::Dumper;
 
 with 'CatalystX::JobServer::Role::MessageQueue::HasChannel';
 
@@ -30,8 +31,12 @@ method build_messagequeue_consumer {
 }
 
 method cancel_messagequeue_consumer {
-    $self->_channel->cancel(
+    $self->_channel->{arc}->cancel( # Use the nonblocking interface directly as we'll likely be called from callbacks
         consumer_tag => refaddr($self),
+        on_success => sub {},
+        on_failure => sub {
+            Carp::cluck("Failed to cancel message consumer in $self response " . Dumper(@_));
+        },
     );
     $self->_have_built_consumer(0);
 }

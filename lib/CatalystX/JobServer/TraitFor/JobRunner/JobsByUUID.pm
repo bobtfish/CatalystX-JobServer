@@ -49,12 +49,17 @@ before _add_job_by_uuid => sub {
 before _remove_running => sub {
     my ($self, $job) = @_;
     if (exists $job->job->{uuid}) {
-        warn("Sending messages to handles for " . $job->job->{uuid});
-        foreach my $h (values %{$self->_jobs_by_uuid_handles->{$job->job->{uuid}}}) {
-            $h->send_msg($job->pack);
-        }
+        my $data = $job->pack;
+        $self->notify_listeners($job->job->{uuid}, $data);
     }
 };
+
+method notify_listeners ($uuid, $data) {
+    return unless exists $self->_jobs_by_uuid_handles->{$uuid};
+    foreach my $h (values %{$self->_jobs_by_uuid_handles->{$uuid}}) {
+        $h->send_msg($data);
+    }
+}
 
 sub register_listener {
     my ($self, $uuid, $h) = @_;

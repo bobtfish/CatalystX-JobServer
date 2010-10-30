@@ -151,6 +151,23 @@ after _remove_running => sub {
     $self->build_messagequeue_consumer if $self->_first_free_worker;
 };
 
+has suspend => (
+    is => 'rw',
+    isa => Bool,
+    default => 0,
+    trigger => sub {
+        my ($self, $val, $old) = @_;
+        $self->cancel_messagequeue_consumer if $val;
+    },
+    traits => ['Serialize'],
+);
+
+around build_messagequeue_consumer => sub {
+    my ($orig, $self, @args) = @_;
+    return if $self->suspend;
+    $self->$orig(@args);
+};
+
 __PACKAGE__->meta->make_immutable;
 1;
 

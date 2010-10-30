@@ -12,6 +12,7 @@ use DateTime;
 use JSON qw/ decode_json encode_json /;
 use Coro; # For killing dead processes after timeout.
 use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete';
+use Try::Tiny;
 use namespace::autoclean;
 
 with 'CatalystX::JobServer::Role::Storage';
@@ -86,7 +87,7 @@ has _respawn_every_timer => (
         my $self = shift;
         AnyEvent->timer(
             after => $self->respawn_every,
-            interval => $self->respawn_every,
+            interval => $self->respawn_every + int(rand($self->respawn_every/10)) - $self->respawn_every/20,
             cb => sub {
                 $self->respawn(1);
                 # Do not kill worker when it's running a job already, respawn = 1
@@ -182,11 +183,10 @@ method __on_read ($hdl) {
 
 method _spawn_worker_if_needed {
     return if $self->_write_handle;
-    my $die = sub { Carp::cluck("Fatal error caught"); $::TERMINATE ? $::TERMINATE->croak(shift) : Carp::confess(shift) };
     my ($to_r, $to_w) = portable_pipe;
     my ($from_r, $from_w) = portable_pipe;
     if (!$to_r or !$to_w or !$from_r or !$from_w) {
-        $die->("Ran out of filehandles trying to spawn sub process");
+        Carp::confess("Ran out of filehandles trying to spawn sub process");
     }
     my $pid = fork;
     if (!defined $pid) {
@@ -194,7 +194,7 @@ method _spawn_worker_if_needed {
         undef $to_w;
         undef $from_r;
         undef $from_w;
-        $die->("FORK ERROR");
+        Carp::confess("FORK ERROR;")
     }
     if ($pid != 0) {
         # parent
@@ -221,22 +221,28 @@ method _spawn_worker_if_needed {
     }
     elsif ($pid == 0) {
         # child
-        close( $to_w );
-        close( $from_r );
-        close( STDOUT );
+        try {
+            close( $to_w );
+            close( $from_r );
+            close( STDOUT );
 
-        open( STDOUT, '>&', fileno($from_w) )
+            open( STDOUT, '>&', fileno($from_w) )
                     or croak("Can't reset stdout: $!");
-        open( STDIN, '<&', fileno( $to_r ) )
+            open( STDIN, '<&', fileno( $to_r ) )
                     or croak("Can't reset stdin: $!");
-        $| = 1;
-        my @cmd = $^X;
-        foreach my $lib (@INC) {
-            push(@cmd, '-I', $lib);
+            $| = 1;
+            my @cmd = $^X;
+            foreach my $lib (@INC) {
+                push(@cmd, '-I', $lib);
+            }
+            push (@cmd, '-MCatalystX::JobServer::JobRunner::Forked::Worker');
+            push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
+            exec( @cmd );
         }
-        push (@cmd, '-MCatalystX::JobServer::JobRunner::Forked::Worker');
-        push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
-        exec( @cmd );
+        catch {
+            warn("Caught exception in sub-process running worker: $_");
+            exit 255;
+        };
     }
 }
 

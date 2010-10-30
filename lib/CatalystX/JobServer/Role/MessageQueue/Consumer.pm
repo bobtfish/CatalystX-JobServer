@@ -3,6 +3,7 @@ use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ Bool /;
 use Scalar::Util qw/ refaddr /;
 use Data::Dumper;
+use Try::Tiny qw/ try catch /;
 
 with 'CatalystX::JobServer::Role::MessageQueue::HasChannel';
 
@@ -24,7 +25,12 @@ method build_messagequeue_consumer {
     $self->_channel->consume(
         on_consume => sub {
             my $message = shift;
-            $self->consume_message($message);
+            try {
+                $self->consume_message($message);
+            }
+            catch {
+                warn("Error in consume_message callback: $_");
+            };
         },
         consumer_tag => refaddr($self),
     )

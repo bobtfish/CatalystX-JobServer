@@ -75,12 +75,12 @@ has waiting => (
     is => 'ro',
     isa => ArrayRef,
     default => sub { [] },
-    traits => ['Array'],
+    traits => ['Array', 'Serialize'],
     handles => {
         _has_jobs_waiting => 'count',
         _push_waiting_job => 'push',
         _get_waiting_job => 'shift',
-    }
+    },
 );
 
 method BUILD {
@@ -122,10 +122,8 @@ sub _do_run_job {
 
 method _try_to_run_queued_jobs {
     while ($self->_has_jobs_waiting) {
-        warn("Has " . $self->_has_jobs_waiting . " jobs waiting");
         my $worker = $self->_first_free_worker;
         unless ($worker) {
-            warn("Failed to find a worker");
             $self->cancel_messagequeue_consumer;
             last;
         }

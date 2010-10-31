@@ -3,6 +3,7 @@ use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ ArrayRef HashRef Int Bool /;
 use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
+use Coro;
 use namespace::autoclean;
 
 has started_at => (
@@ -70,10 +71,16 @@ has workers => (
     traits => ['Serialize'],
 );
 
-has _hit_max => (
-    is => 'rw',
-    clearer => '_clear_hit_max',
-    predicate => '_has_hit_max',
+has waiting => (
+    is => 'ro',
+    isa => ArrayRef,
+    default => sub { [] },
+    traits => ['Array'],
+    handles => {
+        _has_jobs_waiting => 'count',
+        _push_waiting_job => 'push',
+        _get_waiting_job => 'shift',
+    }
 );
 
 method BUILD {
@@ -84,7 +91,7 @@ after add_worker => sub {
     my $self = shift;
     my $worker = $self->_new_worker;
     push(@{ $self->workers }, $worker);
-    $self->_hit_max->send if $self->_hit_max
+    $self->_try_to_run_queued_jobs;
 };
 
 method can_remove_worker {
@@ -109,36 +116,25 @@ method _first_free_worker {
 
 sub _do_run_job {
     my ($self, $job) = @_;
+    $self->_push_waiting_job($job);
+}
 
-    # This is fairly subtle, we need to block if we have too many jobs.
-    # Here is how it works:
-    #  - Find a free worker (where the value for the PID is undef)
-    #  - Set value to true before re-entering event loop (so worker PID is claimed).
-    #  - If there are no free workers then setup a condvar and recv on it
-    #  - Every job which finishes should reset it's freeness state (before the event loop),
-    #    then if there is a jobs waiting convar, grab it, clear it, send on it..
-    #    (like that, so that if the next thread that runs hits max workers (again),
-    #     it will set a _new_ condvar)
-    my $worker;
-    do {
-        $worker = $self->_first_free_worker;
-        if (!$worker) {
-            warn("Hit max number of concurrent workers HARD, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
-            $self->_hit_max(AnyEvent->condvar)
-                unless $self->_has_hit_max;
-            $self->cancel_messagequeue_consumer;
-            $self->_hit_max->recv;
-            warn("Job finished, waking up");
-            $self->_clear_hit_max;
+after _push_waiting_job { shift->_try_to_run_queued_jobs };
+
+method _try_to_run_queued_jobs {
+    async {
+        while ($self->_has_jobs_waiting) {
+            my $worker = $self->_first_free_worker;
+            unless ($worker) {
+                $self->cancel_messagequeue_consumer;
+                last;
+            }
+            $worker->run_job($self->_get_waiting_job);
+            cede;
         }
-    } while (!$worker);
-    warn("Got free worker, running job: " . $job);
-#    warn Data::Dumper::Dumper($job);
-    $worker->run_job($job);
-    unless ($self->_first_free_worker) {
-        warn("Hit max number of concurrent workers SOFT, num workers: " . $self->num_workers . " num running " . scalar(grep { ! $_->free } @{$self->workers}));
-        $self->cancel_messagequeue_consumer;
-    }
+        cede;
+        $self->build_messagequeue_consumer if (!self->_has_jobs_waiting && $self->_first_free_worker);
+    };
 }
 
 has suspend => (
@@ -155,8 +151,7 @@ has suspend => (
 with 'CatalystX::JobServer::JobRunner';
 
 after _remove_running => sub {
-    my $self = shift;
-    $self->build_messagequeue_consumer if $self->_first_free_worker;
+    shift->_try_to_run_queued_jobs;
 };
 
 around build_messagequeue_consumer => sub {

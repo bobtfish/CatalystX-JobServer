@@ -55,10 +55,8 @@ method job_failed ($job, $error) {
 }
 
 method run_job ($job) {
-    my $running_job = Running->new(job => $job);
 #    warn("do_run_job " . Dumper ($running_job));
     $self->_do_run_job($job);
-    $self->_add_running($running_job);
 }
 
 method update_status ($job, $data) { }

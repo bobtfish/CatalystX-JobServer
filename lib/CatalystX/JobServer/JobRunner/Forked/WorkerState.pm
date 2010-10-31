@@ -74,9 +74,10 @@ has update_status_cb => (
 );
 
 method job_finished ($output) {
-    $self->job_finished_cb->(encode_json($self->working_on), $output)
-        if $self->_has_job_finished_cb;
+    my $working_on = $self->working_on;
     $self->_clear_working_on;
+    $self->job_finished_cb->(encode_json($working_on), $output)
+        if $self->_has_job_finished_cb;
 }
 
 has respawn_every => (

@@ -3,7 +3,7 @@ use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ ArrayRef HashRef Int Bool /;
 use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
-use Coro;
+use aliased 'CatalystX::JobServer::Job::Running';
 use namespace::autoclean;
 
 has started_at => (
@@ -56,7 +56,7 @@ has workers => (
                     %{ $self->worker_config },
                     job_finished_cb => sub {
                         $self->job_finished(shift, shift);
-                        $self->_hit_max->send if $self->_hit_max
+                        $self->_try_to_run_queued_jobs;
                     },
                     update_status_cb => sub {
                         my ($job, $data) = @_;
@@ -117,24 +117,24 @@ method _first_free_worker {
 sub _do_run_job {
     my ($self, $job) = @_;
     $self->_push_waiting_job($job);
+    $self->_try_to_run_queued_jobs;
 }
 
-after _push_waiting_job { shift->_try_to_run_queued_jobs };
-
 method _try_to_run_queued_jobs {
-    async {
-        while ($self->_has_jobs_waiting) {
-            my $worker = $self->_first_free_worker;
-            unless ($worker) {
-                $self->cancel_messagequeue_consumer;
-                last;
-            }
-            $worker->run_job($self->_get_waiting_job);
-            cede;
+    while ($self->_has_jobs_waiting) {
+        warn("Has " . $self->_has_jobs_waiting . " jobs waiting");
+        my $worker = $self->_first_free_worker;
+        unless ($worker) {
+            warn("Failed to find a worker");
+            $self->cancel_messagequeue_consumer;
+            last;
         }
-        cede;
-        $self->build_messagequeue_consumer if (!self->_has_jobs_waiting && $self->_first_free_worker);
-    };
+        my $job = $self->_get_waiting_job;
+        my $running_job = Running->new(job => $job);
+        $self->_add_running($running_job);
+        $worker->run_job($job);
+    }
+    $self->build_messagequeue_consumer if (!$self->_has_jobs_waiting && $self->_first_free_worker);
 }
 
 has suspend => (

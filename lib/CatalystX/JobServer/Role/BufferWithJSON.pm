@@ -1,6 +1,7 @@
 package CatalystX::JobServer::Role::BufferWithJSON;
 use CatalystX::JobServer::Moose::Role;
 use JSON;
+use Try::Tiny;
 
 method get_json_from_buffer ($buf_ref, $code_ref) {
     Carp::confess("AGGGHH") unless ref($code_ref) eq 'CODE';

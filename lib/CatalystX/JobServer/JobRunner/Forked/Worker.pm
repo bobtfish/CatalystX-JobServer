@@ -42,6 +42,7 @@ method json_object ($data) {
     my ($instance, $ret);
     my $running_class;
     my $class = try {
+        $data->{interactive} = 0;
         $running_class = to_LoadableClass($data->{__CLASS__})
             or die("Coud not load class " . $data->{__CLASS__});
         $instance = $running_class->unpack($data);

@@ -182,6 +182,10 @@ method __on_read ($hdl) {
     $hdl->{rbuf} = '';
     while ( $self->get_json_from_buffer(\$buf, sub {
         my $data = shift;
+        unless (ref($data) eq 'HASH' && $data->{__CLASS__}) {
+            warn("Found crap in the output stream: " . $data);
+            return;
+        }
         Class::MOP::load_class($data->{__CLASS__});
         $data = $data->{__CLASS__}->unpack($data);
         if ($data->is_complete) {

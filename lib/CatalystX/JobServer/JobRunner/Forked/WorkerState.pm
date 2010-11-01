@@ -150,7 +150,9 @@ method __on_error ($hdl, $fatal, $msg) {
 
     kill(15, $pid) if (kill 0, $pid);
     $hdl->destroy if $hdl;
+    close($self->_write_handle) if $self->_write_handle;
     $self->_clear_write_handle;
+    close($self->_read_handle) if $self->_read_handle;
     $self->_clear_read_handle;
     $self->_clear_pid;
     $self->_clear_ae_handle;

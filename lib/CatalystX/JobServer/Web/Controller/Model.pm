@@ -10,11 +10,13 @@ with 'CatalystX::JobServer::Web::Role::Hippie';
 
 sub base : Chained('/base') PathPart('model') CaptureArgs(0) {
     my ($self, $ctx) = @_;
-    $ctx->stash(
-        sub_action_for => sub {
-            $ctx->controller($ctx->stash->{component_name})->action_for(@_)
-        },
-    );
+    if (my $controller = $ctx->controller($ctx->stash->{component_name})) {
+        $ctx->stash(
+            sub_action_for => sub {
+               $controller->action_for(@_);
+            },
+        );
+    }
 }
 
 sub find : Chained('base') PathPart('') CaptureArgs(1) {

@@ -42,6 +42,8 @@ requires 'aliased';
 requires 'Sys::Hostname';
 
 test_requires 'Test::More' => '0.88';
+test_requires 'Test::Exception';
+test_requires 'HTTP::Request::Common';
 
 author_requires 'Test::Pod' => '1.14';
 author_requires 'Test::Pod::Coverage' => '1.04';

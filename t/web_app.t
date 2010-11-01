@@ -2,14 +2,19 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Exception;
+use HTTP::Request::Common;
+use JSON qw/ decode_json /;
 
 BEGIN { use_ok 'Catalyst::Test', 'CatalystX::JobServer::Web' }
 use Catalyst::Engine::HTTP;
 CatalystX::JobServer::Web->engine(Catalyst::Engine::HTTP->new);
 
-ok( request('/')->is_success, 'Request should succeed' );
-ok( request('/model/ForkedJobRunner')->is_success );
-ok( request('/model/ComponentMap')->is_success );
-ok( request('/model/MessageQueue')->is_success );
+foreach my $path (qw[ / /model/forkedjobrunner /model/componentmap /model/messagequeue ]) {
+    ok( request($path)->is_success, "Request to $path should succeed" );
+    my $res = request(GET($path, Accept => 'application/json' ));
+    ok $res->is_success, "Request to $path as JSON should succeed";
+    lives_ok { decode_json($res->content) } 'JSON decoded ok';
+}
 
 done_testing();

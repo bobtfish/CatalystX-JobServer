@@ -28,7 +28,7 @@ sub index :Chained('base') PathPart('') Args(0) {
     #$c->res->header('Content-Type', 'application/json');
     my $cm = $c->model('ComponentMap');
     $c->stash(
-        component_map => $cm,
+        data => $cm,
         component_map_astext => $cm->freeze(1),
     );
 }

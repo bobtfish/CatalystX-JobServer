@@ -17,7 +17,7 @@ use DateTime;
 
 {   # Give all warnings timestamps, useful for logging / debugging.
     my $oldwarn = $SIG{__WARN__} || \&CORE::warn;
-    $SIG{__WARN__} = sub { my $msg = DateTime->now . " " . shift(); unshift(@_, @msg); goto $oldwarn };
+    $SIG{__WARN__} = sub { my $msg = DateTime->now . " " . shift(); unshift(@_, $msg); goto $oldwarn };
 }
 
 # Can $::TERMINATE->throw to exit :)

@@ -12,6 +12,13 @@ use Plack::App::File;
 use Plack::App::Cascade;
 use Try::Tiny;
 
+use DateTime;
+
+{   # Give all warnings timestamps, useful for logging / debugging.
+    my $oldwarn = $SIG{__WARN__} || \&CORE::warn;
+    $SIG{__WARN__} = sub { my $msg = DateTime->now . " " . shift(); unshift(@_, @msg); goto $oldwarn };
+}
+
 # Can $::TERMINATE->throw to exit :)
 our $TERMINATE = AnyEvent->condvar;
 our $RUNNING = AnyEvent->condvar;

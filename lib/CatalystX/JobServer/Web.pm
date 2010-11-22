@@ -1,7 +1,6 @@
 package CatalystX::JobServer::Web;
 use CatalystX::JobServer::Moose;
-use Coro (); # Ensure loaded before AnyEvent
-use AnyEvent;
+use CatalystX::JobServer ();
 use MooseX::Types::Moose qw/ Str /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use Moose::Autobox;

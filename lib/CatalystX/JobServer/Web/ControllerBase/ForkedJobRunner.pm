@@ -4,7 +4,6 @@ use MooseX::Types::Moose qw/ HashRef /;
 use JSON::XS;
 
 BEGIN { extends 'Catalyst::Controller' }
-with 'CatalystX::JobServer::Web::Role::Hippie';
 
 has model_name => (
     is => 'ro',
@@ -77,14 +76,6 @@ sub by_uuid_redirect : Chained('by_uuid') PathPart('') Args(0) {
     }
 }
 
-__PACKAGE__->config(
-    action => {
-        hippie => {
-            Chained => [ 'find_by_uuid' ],
-        }
-    },
-);
-
 sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     my ($self, $c, $job_uuid) = @_;
     my $job_model = $c->model('ForkedJobRunner');
@@ -106,6 +97,16 @@ sub display_by_uuid : Chained('find_by_uuid') PathPart('') Args(0) {
     my ($self, $c) = @_;
     $c->stash(template => 'display_job_by_uuid.tt');
 }
+
+with 'CatalystX::JobServer::Web::Role::Hippie';
+
+__PACKAGE__->config(
+    action => {
+        hippie => {
+            Chained => [ 'find_by_uuid' ],
+        }
+    },
+);
 
 sub hippie_init {
     my ($self, $c, $env) = @_;

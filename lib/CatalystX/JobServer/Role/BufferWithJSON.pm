@@ -12,6 +12,7 @@ method get_json_from_buffer ($buf_ref, $code_ref) {
         my $length = $finish_index - $start_index;
         my $pre_junk = substr($$buf_ref, 0, $start_index+1, '');
         my $json = substr($$buf_ref, 0, $length-1, '');
+        $json =~ s/^[^{]*{/{/; # HMM, should be impossible..
         substr($$buf_ref, 0, 1, ''); # Remove trailing character
         # FIXME - Multiple JSON packets in one callback..
         #warn("Grabbed JSON" . Dumper($json));

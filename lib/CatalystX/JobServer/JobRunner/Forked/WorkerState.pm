@@ -211,7 +211,15 @@ method _spawn_worker_if_needed {
         undef $to_w;
         undef $from_r;
         undef $from_w;
-        Carp::confess("FORK ERROR;")
+        if ($! == &Errno::EAGAIN) {
+            Carp::confess("CAUGHT EXCEPTION - FORK ERROR: EAGAIN");
+        }
+        elsif ($! == &Errno::ENOMEM) {
+            Carp::confess("CAUGHT EXCEPTION - FORK ERROR: ENOMEM");
+        }
+        else {
+            Carp::confess("CAUGHT EXCEPTION - FORK ERROR: unknown ($!)");
+        }
     }
     if ($pid != 0) {
         # parent
@@ -255,10 +263,11 @@ method _spawn_worker_if_needed {
             push (@cmd, '-MCatalystX::JobServer::JobRunner::Forked::Worker');
             push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
             exec( @cmd );
+            POSIX::_exit(255);
         }
         catch {
             warn("Caught exception in sub-process running worker: $_");
-            exit 255;
+            POSIX::_exit(255);
         };
     }
 }

@@ -13,21 +13,23 @@ with 'CatalystX::JobServer::Role::Storage';
 has jobs_running_count => (
     is => 'ro',
     isa => Int,
-    default => 0,
-    traits    => ['Counter', 'Serialize'],
-    handles => {
-        _inc_running_job_count    => 'inc',
-        _dec_running_job_count => 'dec',
-    }
+    traits    => ['Serialize'],
+    clearer => '_clear_jobs_running_count',
+    lazy => 1,
+    builder => '_build_jobs_running_count',
 );
+
+method _build_jobs_running_count { 0 }
+
+before 'pack' => sub {
+    shift->_clear_jobs_running_count;
+};
 
 sub _add_running {
     my ($self, $job) = @_;
-    $self->_inc_running_job_count;
 }
 sub _remove_running {
     my ($self, $job) = @_;
-    $self->_dec_running_job_count;
 }
 
 has jobs_registered => (

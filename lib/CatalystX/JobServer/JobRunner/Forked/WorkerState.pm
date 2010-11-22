@@ -13,7 +13,9 @@ use JSON qw/ decode_json encode_json /;
 use Coro; # For killing dead processes after timeout.
 use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete';
 use Try::Tiny;
+use POSIX ();
 use namespace::autoclean;
+no warnings 'syntax'; # "Statement unlikely to be reached"
 
 with 'CatalystX::JobServer::Role::Storage';
 
@@ -263,7 +265,6 @@ method _spawn_worker_if_needed {
             push (@cmd, '-MCatalystX::JobServer::JobRunner::Forked::Worker');
             push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
             exec( @cmd );
-            POSIX::_exit(255);
         }
         catch {
             warn("Caught exception in sub-process running worker: $_");

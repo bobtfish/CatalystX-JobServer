@@ -26,6 +26,10 @@ has num_workers => (
     },
 );
 
+method _build_jobs_running_count {
+    scalar(grep { ! $_->free } $self->workers->flatten);
+}
+
 has worker_state_class => (
     isa => LoadableClass,
     is => 'ro',

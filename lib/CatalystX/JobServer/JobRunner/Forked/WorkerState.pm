@@ -78,8 +78,14 @@ has update_status_cb => (
 method job_finished ($output) {
     my $working_on = $self->working_on;
     $self->_clear_working_on;
-    $self->job_finished_cb->(encode_json($working_on), $output)
-        if $self->_has_job_finished_cb;
+    try {
+        $self->job_finished_cb->(encode_json($working_on), $output)
+            if $self->_has_job_finished_cb;
+    }
+    catch {
+        require Data::Dumper;
+        warn("Caught exception finishing working: $_ working_on was " . Data::Dumper::Dumper($working_on);
+    };
 }
 
 has respawn_every => (

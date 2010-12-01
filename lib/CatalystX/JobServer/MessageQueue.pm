@@ -109,35 +109,8 @@ CatalystX::JobServer::MessageQueue - Abstraction over RabbitMQ for CatalystX::Jo
             port: 5672
             host: localhost
             vhost: /
-            channels:
-                jobs:
-                    exchanges:
-                        - type: topic
-                          durable: 1
-                          exchange: jobs
-                    queues:
-                        - queue: jobs_queue
-                          durable: 1
-                          bind:
-                            exchange: jobs
-                            routing_key: "#"
-                    dispatch_to: ForkedJobRunner
-                    results_exchange: firehose
-                    results_routing_key: ""
-                firehose:
-                    exchanges:
-                        - type: topic
-                          durable: 1
-                          exchange: firehose
-                    queues:
-                        - queue: firehose_log
-                          durable: 1
-                          bind:
-                              exchange: firehose
-                              routing_key: "#"
-                    dispatch_to: FireHoseLog
-                    results_exchange: firehose
-                    results_routing_key: ""
+            user: guest
+            pass: guest
 
 =head1 DESCRIPTION
 

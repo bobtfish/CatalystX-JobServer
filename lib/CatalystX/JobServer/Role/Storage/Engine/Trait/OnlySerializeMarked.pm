@@ -14,6 +14,7 @@ around map_attributes => sub {
 around collapse_object => sub {
     my ($orig, $self, @args) = @_;
     my $data = $self->$orig(@args);
+    # FIXME - Ewww, this shouldn't be in here and there should be a nicer way of doing this..
     my $class = do { local $@; eval { $self->object->catalyst_component_name } };
     $data->{__CLASS__} = $class if $class;
     return $data;

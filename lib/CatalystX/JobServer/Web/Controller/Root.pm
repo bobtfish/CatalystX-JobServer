@@ -21,7 +21,10 @@ The root page (/)
 
 =cut
 
-sub base : Chained('/') PathPart('') CaptureArgs(0) {}
+sub base : Chained('/') PathPart('') CaptureArgs(0) {
+    my ($self, $c) = @_;
+    $c->stash(json_encoder => $self->action_for('end')->_encoders->{'JSON'}->encoder);
+}
 
 sub index :Chained('base') PathPart('') Args(0) {
     my ( $self, $c ) = @_;
@@ -58,7 +61,6 @@ Attempt to render a view, if needed.
 
 sub end : ActionClass('Serialize') {
     my ($self, $c) = @_;
-    $c->stash(json_encoder => $self->action_for('end')->_encoders->{'JSON'}->encoder);
     if (blessed($c->stash->{data})) {
         $c->stash(data => $c->stash->{data}->pack);
     }

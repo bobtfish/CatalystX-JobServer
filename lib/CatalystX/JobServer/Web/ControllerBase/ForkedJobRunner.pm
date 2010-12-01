@@ -66,6 +66,8 @@ sub display : Chained('by_name') PathPart('') Args(0) {
 
 sub by_uuid : Chained('base') PathPart('by_uuid') CaptureArgs(0) {}
 
+sub by_uuid_list : Chained('by_uuid') PathPart('') Args(0) {}
+
 sub by_uuid_redirect : Chained('by_uuid') PathPart('') Args(0) {
     my ($self, $c) = @_;
     if ($c->req->parameters->{uuid}) {

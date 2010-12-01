@@ -1,0 +1,6 @@
+<ul>
+[% FOREACH worker = c.stash.component.workers %]
+    [% NEXT UNLESS worker.working_on %]
+    <li><a href="[% c.uri_for_action('/forkedjobrunner/display_by_uuid', [ worker.working_on.uuid ] ) %]">[% worker.working_on.uuid %]</li>
+[% END %]
+</ul>

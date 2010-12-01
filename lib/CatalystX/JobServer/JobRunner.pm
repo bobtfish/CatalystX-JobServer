@@ -27,9 +27,11 @@ before 'pack' => sub {
 
 sub _add_running {
     my ($self, $job) = @_;
+    $self->_clear_jobs_running_count;
 }
 sub _remove_running {
     my ($self, $job) = @_;
+    $self->_clear_jobs_running_count;
 }
 
 has jobs_registered => (
@@ -46,7 +48,6 @@ method consume_message ($message) {
 method job_finished ($job, $output){
     my $finished = Finished->new(job => $job);
     $finished->finalize();
-    warn("Remove running");
     $self->_remove_running($finished);
 }
 

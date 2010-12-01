@@ -84,7 +84,7 @@ method job_finished ($output) {
     }
     catch {
         require Data::Dumper;
-        warn("Caught exception finishing working: $_ working_on was " . Data::Dumper::Dumper($working_on);
+        warn("Caught exception finishing working: $_ working_on was " . Data::Dumper::Dumper($working_on));
     };
 }
 

@@ -19,9 +19,17 @@ use TestJob;
         method => 'job_finished',
     };
 
+    sub bind_queue {}
+    sub _exchange {}
+    sub _queue {}
+    sub build_messagequeue_consumer {}
+
     __PACKAGE__->meta->make_immutable;
 }
-my $jobs = TestJobRunner->new();
+my $jobs = TestJobRunner->new(
+    exchange_name => 'foo',
+    queue_name => 'bar',
+);
 
 ok $jobs;
 
@@ -36,6 +44,8 @@ $jobs->run_job('{"__CLASS__": "TestJob"}');
 is $jobs->jobs_running_count, 1;
 $jobs->test_job_finished_called;
 is $jobs->jobs_running_count, 0;
+
+done_testing;
 
 __END__
 isa_ok $cb_val, 'CatalystX::JobServer::Job::Finished';

@@ -17,4 +17,6 @@ foreach my $path (qw[ / /model/forkedjobrunner /model/componentmap /model/messag
     lives_ok { decode_json($res->content) } 'JSON decoded ok';
 }
 
+CatalystX::JobServer::Web->model('MessageQueue')->mq->close;
+
 done_testing();

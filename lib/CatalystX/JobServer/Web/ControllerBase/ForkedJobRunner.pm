@@ -66,15 +66,10 @@ sub display : Chained('by_name') PathPart('') Args(0) {
 
 sub by_uuid : Chained('base') PathPart('by_uuid') CaptureArgs(0) {}
 
-sub by_uuid_list : Chained('by_uuid') PathPart('') Args(0) {}
-
-sub by_uuid_redirect : Chained('by_uuid') PathPart('') Args(0) {
+sub by_uuid_list : Chained('by_uuid') PathPart('') Args(0) {
     my ($self, $c) = @_;
     if ($c->req->parameters->{uuid}) {
         $c->res->redirect($c->uri_for($self->action_for('find_by_uuid'), [ $c->req->parameters->{uuid} ]));
-    }
-    else {
-        $c->detach('/error404');
     }
 }
 
@@ -95,10 +90,7 @@ sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     );
 }
 
-sub display_by_uuid : Chained('find_by_uuid') PathPart('') Args(0) {
-    my ($self, $c) = @_;
-    $c->stash(template => 'display_job_by_uuid.tt');
-}
+sub display_by_uuid : Chained('find_by_uuid') PathPart('') Args(0) {}
 
 with 'CatalystX::JobServer::Web::Role::Hippie';
 

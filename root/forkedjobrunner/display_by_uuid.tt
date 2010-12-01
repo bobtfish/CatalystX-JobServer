@@ -17,63 +17,81 @@
 
 //Joose.Storage.Unpacker.patchJSON();
 Module("CatalystX.JobServer.JobRunner.Forked.WorkerStatus", function (m) {
-Class("CompletionEstimate", {
-    does: Joose.Storage,
-    has: {
-        step_count: {
-            is: "ro",
-            init: 0
+    Class("CompletionEstimate", {
+        does: Joose.Storage,
+        has: {
+            step_count: {
+                is: "ro",
+                init: 0
+            },
+            steps_taken: {
+                is: "ro",
+                init: 0
+            }
         },
-        steps_taken: {
-            is: "ro",
-            init: 0
+        methods: {
+            displayOn: function(s) {
+                var percentage = Math.floor(100 * parseInt(this.steps_taken) / parseInt(this.step_count));
+                $(s).progressBar(percentage, { barImage: '/static/images/progressbg_black.gif'});
+            }
         }
-    },
-    methods: {
-        displayOn: function(s) {
-            var percentage = Math.floor(100 * parseInt(this.steps_taken) / parseInt(this.step_count));
-            $(s).progressBar(percentage, { barImage: '/static/images/progressbg_black.gif'});
-        }
-    }
-})
+    });
 });
-Class("SaveResponse", {
-    does: Joose.Storage,
-    has: {
-        id: {
-            is: "ro"
+Module("CatalystX.JobServer.JobRunner.Job", function (m) {
+    Class("Running", {
+        does: Joose.Storage,
+        has: {
+            job: {
+                is: "ro",
+            }
         },
-        old_id: {
-            is: "ro",
-            predicate: "has_old_id"
-        },
-        status: {
-            is: "ro"
+        methods: {
+            displayOn: function(s) {
+                alert(this.job.uuid);
+            }
         }
-    }
+    });
 });
 
+Module("CatalystX.JobServer.JobDisplay", function (m) {
+   Class("Hippie", {
+       has: {
+           hippie: {
+               is: "ro",
+               init: function () {
+                   new Hippie(
+                       document.location.host,
+                       5, // Timeout
+                       function() { this.connected() },
+                       function() { this.disconnected() },
+                       function(e) { this.handleMessage(e) },                                                  
+                       "[% hippie_path %]"
+                   );
+               }
+           }
+       },
+       methods: {
+           handleMessage: function ($m) {
+               var message;
+               try {
+                     message = Joose.Storage.Unpacker.unpack(e);
+                     message.displayOn("#progressbar");
+                 } catch (ex) {
+                     log_it("got unhandled message, exception: " + ex + " message : " + dump(e));
+                 }
+           },
+           connected: function () {},
+           disconnected: function () {},
+       }
+   });
+});
+     
 function log_it(stuff) {
   $("#log").append(stuff+'<br/>');
 }
 $(function() {
   $("#progressbar").progressBar({ boxImage: '/static/images/progressbar.gif', barImage: '/static/images/progressbg.gif'});
-  var hippie = new Hippie( document.location.host, 5, function() {
-                               log_it("connected");
-                             },
-                             function() {
-                               log_it("disconnected");
-                             },
-                             function(e) {
-                               var message;
-                               try {
-                                   message = Joose.Storage.Unpacker.unpack(e);
-                                   message.displayOn("#progressbar");
-                               } catch (ex) {
-                                   log_it("got unhandled message, exception: " + ex + " message : " + dump(e));
-                               }
-                             },
-                             "[% hippie_path %]" );
+  var manger = new CatalystX.JobServer.JobDisplay.Hippie(); 
 });
 
 

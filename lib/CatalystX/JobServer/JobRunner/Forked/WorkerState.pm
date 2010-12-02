@@ -5,6 +5,7 @@ use MooseX::Types::Moose qw/ HashRef Int CodeRef Bool Str /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
 use AnyEvent;
 use AnyEvent::Handle;
+use AnyEvent::Util qw/ close_all_fds_except /;
 use namespace::autoclean;
 use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
@@ -263,6 +264,7 @@ method _spawn_worker_if_needed {
                     or croak("Can't reset stdout: $!");
             open( STDIN, '<&', fileno( $to_r ) )
                     or croak("Can't reset stdin: $!");
+            close_all_fds_except(0, 2, 1);
             $| = 1;
             my @cmd = $^X;
             foreach my $lib (@INC) {

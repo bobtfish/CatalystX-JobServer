@@ -62,6 +62,7 @@ before update_status => sub {
 
 method notify_listeners ($uuid, $data) {
     return unless exists $self->_jobs_by_uuid_handles->{$uuid};
+    $data->{uuid} = $uuid;
     foreach my $h (values %{$self->_jobs_by_uuid_handles->{$uuid}}) {
         $h->send_msg($data);
     }

@@ -60,9 +60,11 @@ method json_object ($data) {
         warn "CAUGHT EXCEPTION RUNNING: $_ dieing..";
         exit 1;
     };
+    my $ok = ! ! $ret;
     try {
-        my $complete = $ret if ($ret && blessed($ret) && $ret->can('is_complete') && $ret->is_complete);
-        $complete = CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete->new;
+        my %p = ( ok => $ok );
+        $p{uuid} = $instance->uuid if (try { $instance->uuid });
+        my $complete = CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete->new( %p );
 #        warn("IN WORKER DONE");
         print "\x00" . $complete->freeze . "\xff";
     }
@@ -70,6 +72,10 @@ method json_object ($data) {
         warn "CAUGHT EXCEPTION FREEZING RESPONSE: $_ dieing..";
         exit 1;
     };
+    unless ($ok) {
+        warn("Job indicated unsuccessful exit, dieing");
+        exit 1;
+    }
     $0 = 'perl jobserver_worker [idle]';
 }
 

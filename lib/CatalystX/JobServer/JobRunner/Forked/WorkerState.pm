@@ -190,13 +190,16 @@ method __on_read ($hdl) {
             return;
         }
         Class::MOP::load_class($data->{__CLASS__});
-        $data = $data->{__CLASS__}->unpack($data);
-        if ($data->is_complete) {
-            $self->job_finished($data);
-            $self->spawn_new_worker if $self->respawn;
-        }
-        else {
-            $self->update_status($data);
+        $data = try { $data->{__CLASS__}->unpack($data) }
+            catch { warn("Could not unserialize " . Data::Dumper::Dumper($data) . " $_") };
+        if ($data) {
+            if ($data->is_complete) {
+                $self->job_finished($data);
+                $self->spawn_new_worker if $self->respawn;
+            }
+            else {
+                $self->update_status($data);
+            }
         }
     })) { 1 }
 }

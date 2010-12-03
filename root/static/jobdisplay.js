@@ -38,6 +38,26 @@ Module("CatalystX.JobServer.JobRunner.Forked.WorkerStatus", function (m) {
             }
         }
     });
+    Class("RunJob", {
+        does: Joose.Storage,
+        has: {
+            uuid: {
+                is: "ro",
+            },
+            job: {
+                is: "ro",
+            },
+        },
+        methods: {
+            handleDisplay: function( display ) {
+                $(display.getSelector()).append('<tr id="' + this.job.uuid + '"><td class="uuid">'
+                    + this.job.uuid + '</td><td class="status" id="statusBar' + this.job.uuid + '"></td><td id="progressBar'
+                    + this.job.uuid + '"></td></tr>');
+                $("#statusBar" + this.job.uuid).text("Queued...");
+                display.getRunning_jobs()[this.job.uuid] = 1;
+            }
+        }
+    });
 });
 Module("CatalystX.JobServer.Job", function (m) {
     Class("Running", {
@@ -49,7 +69,7 @@ Module("CatalystX.JobServer.Job", function (m) {
         },
         methods: {
             handleDisplay: function( display ) {
-                $("#statusBar" + this.uuid).text("Started new job");
+                $("#statusBar" + this.job.uuid).text("Started new job");
             }
         }
     });

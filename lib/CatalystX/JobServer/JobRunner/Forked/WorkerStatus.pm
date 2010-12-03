@@ -8,4 +8,6 @@ has uuid => (
     traits => ['Serialize'],
 );
 
+method is_complete { 0 }
+
 1;

@@ -2,8 +2,6 @@ package CatalystX::JobServer::JobRunner::Forked::WorkerStatus::CompletionEstimat
 use CatalystX::JobServer::Moose;
 use MooseX::Types::Moose qw/ Int Str /;
 
-method is_complete { 0 }
-
 with 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus';
 
 has status_info => (

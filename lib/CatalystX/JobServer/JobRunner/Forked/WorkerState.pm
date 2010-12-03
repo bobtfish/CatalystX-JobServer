@@ -246,7 +246,7 @@ method _spawn_worker_if_needed {
         $self->_sigchld_handle(AnyEvent->child(
             pid => $pid,
             cb => sub {
-                $self->__error($self->_ae_handle, undef, 'Caught SIGCHLD');
+                $self->__on_error($self->_ae_handle, undef, 'Caught SIGCHLD');
             },
         ));
         $self->worker_started_at(DateTime->now);

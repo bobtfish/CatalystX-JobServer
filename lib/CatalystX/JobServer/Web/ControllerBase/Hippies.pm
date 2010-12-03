@@ -33,6 +33,11 @@ has pipes => (
     default => sub { {} },
 );
 
+has exchange_name => (
+    is => 'ro',
+    default => 'firehose',
+);
+
 sub find : Chained('/base') PathPart('hippies') CaptureArgs(1) {
     my ($self, $c, $keys) = @_;
     my @keys = split /,/, $keys;
@@ -67,15 +72,29 @@ sub hippie_init {
                             my $message = shift;
                             print $message->{deliver}->method_frame->routing_key,
                             ': ', $message->{body}->payload, "\n" if $c->debug;
-                            $h->send_msg(decode_json($message->{body}->payload));
+                            my $data = decode_json($message->{body}->payload);
+                            if ($data->{__CLASS__} eq 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::RunJob') {
+                                #warn("GOT A JUST ENQUEUED JOB");
+                                my $new_job = $data->{job};
+                                if ($new_job->{uuid}) {
+                                    $ch->bind_queue(
+                                        queue => $queue_frame->queue,
+                                        exchange => $self->exchange_name,
+                                        routing_key => $self->generate_routing_key($new_job->{uuid}),
+                                        on_success => sub { },#warn("Bound new job") },
+                                        on_failure => sub { warn("Failed to bind") },
+                                    );
+                                }
+                            }
+                            $h->send_msg($data);
                         },
                     )}, sub {}]);
                     foreach my $routing_key (@{ $c->stash->{routing_keys} }) {
-                        warn("Bind $routing_key");
+                        #warn("Bind $routing_key");
                         unshift(@tasks, [sub {
                             $ch->bind_queue(
                                 queue => $queue_frame->queue,
-                                exchange => 'firehose',
+                                exchange => $self->exchange_name,
                                 routing_key => $routing_key,
                                 on_success => shift,
                                 on_failure => sub { warn("Failed to bind") },
@@ -103,7 +122,7 @@ sub hippie_init {
 
 sub hippie_error {
     my ($self, $c, $env) = @_;
-    warn("Error");
+    #warn("Error");
     my $h = $env->{'hippie.handle'};
     my $ch = $self->pipes->{refaddr($h)};
     return unless $ch;

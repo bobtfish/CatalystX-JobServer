@@ -15,7 +15,7 @@ Model::ForkedJobRunner:
     args:
         exchange_name: jobs
         queue_name: jobs_queue
-        publish_self_every: 10
+        publish_self_every: 60
         publish_self_to: firehose
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"

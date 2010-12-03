@@ -76,7 +76,6 @@ sub by_uuid_list : Chained('by_uuid') PathPart('') Args(0) {
 sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     my ($self, $c, $job_uuid) = @_;
     my $job_model = $c->model('ForkedJobRunner');
-    use Data::Dumper; warn Dumper([$job_uuid, $job_model->jobs_by_uuid]);
     my $job = $job_model->jobs_by_uuid->{$job_uuid}
         or $c->detach('/error404');
 

@@ -134,7 +134,6 @@ method run_job ($job) {
     $self->_spawn_worker_if_needed;
 
     $self->working_on(decode_json($job));
-#    warn Data::Dumper::Dumper($job);
     $self->_write_handle->syswrite("\x00" . $job . "\xff");
 }
 

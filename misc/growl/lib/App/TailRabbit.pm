@@ -3,12 +3,13 @@ use Moose;
 use MooseX::Getopt;
 use Net::RabbitFoot;
 use Data::Dumper;
-use MooseX::Types::Moose qw/ ArrayRef /;
+use MooseX::Types::Moose qw/ ArrayRef Object /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use AnyEvent;
 use YAML qw/LoadFile/;
 use File::HomeDir;
 use Path::Class qw/ file /;
+use MooseX::Types::LoadableClass qw/ LoadableClass /;
 use namespace::autoclean;
 
 with qw/
@@ -38,6 +39,23 @@ has [qw/ rabbitmq_user rabbitmq_pass /] => (
     isa => NonEmptySimpleStr,
     is => 'ro',
     default => 'guest',
+);
+
+has convertor => (
+    isa => LoadableClass,
+    is => 'ro',
+    coerce => 1,
+    default => 'App::TailRabbit::Convertor::Null',
+);
+
+has _convertor => (
+    is => 'ro',
+    isa => Object,
+    lazy => 1,
+    default => sub {
+        shift->convertor->new
+    },
+    handles => [qw/ convert /],
 );
 
 sub get_config_from_file {
@@ -113,20 +131,21 @@ sub run {
     my $ch = $self->_get_channel($self->_get_mq);
     $self->_bind_anon_queue($ch);
     my $done = AnyEvent->condvar;
-    warn("MOO");
     $ch->consume(
         on_consume => sub {
             my $message = shift;
-            $self->notify($message);
+            my $payload = $self->convert($message->{body}->payload);
+            my $routing_key = $message->{deliver}->method_frame->routing_key;
+            $self->notify($payload, $routing_key, $message);
         },
     );
     $done->recv; # Go into the event loop forever.
 }
 
 sub notify {
-    my ($self, $message) = @_;
-    print $message->{deliver}->method_frame->routing_key,
-        ': ', $message->{body}->payload, "\n";
+    my ($self, $payload, $routing_key, $message) = @_;
+    print $routing_key,
+        ': ', $payload, "\n";
 }
 
 __PACKAGE__->meta->make_immutable;

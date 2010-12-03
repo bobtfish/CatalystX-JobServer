@@ -20,8 +20,8 @@ before run => sub {
 };
 
 sub notify {
-    my ($self, $message, $text) = @_;
-    Mac::Growl::PostNotification($as_app, $names[0], '', $message->{body}->payload, $self->sticky, 1);
+    my ($self, $payload, $routing_key, $message) = @_;
+    Mac::Growl::PostNotification($as_app, $names[0], '', $payload, $self->sticky, 1);
 }
 
 __PACKAGE__->meta->make_immutable;

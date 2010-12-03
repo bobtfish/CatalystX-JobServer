@@ -28,12 +28,7 @@ sub base : Chained('/') PathPart('') CaptureArgs(0) {
 
 sub index :Chained('base') PathPart('') Args(0) {
     my ( $self, $c ) = @_;
-    #$c->res->header('Content-Type', 'application/json');
-    my $cm = $c->model('ComponentMap');
-    $c->stash(
-        data => $cm,
-        component_map_astext => $cm->freeze(1),
-    );
+    $c->go('/model/inspect', ['componentmap'], []);
 }
 
 =head2 default

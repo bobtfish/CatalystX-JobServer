@@ -39,9 +39,9 @@ has args => (
 );
 
 has traits => (
-    isa => Str|ArrayRef([Str]),
-    predicate => 'has_traits',
+    isa => ArrayRef[Str],
     is => 'ro',
+    default => sub { [] },
 );
 
 sub COMPONENT {
@@ -53,7 +53,7 @@ sub COMPONENT {
         {
             message_queue_model => $app->model('MessageQueue'),
             model_locator_callback => sub { $app->model(@_) },
-            $self->has_traits ? (traits => $self->traits) : (),
+            traits => [ '+MooseX::Traits::Pluggable', @{ $self->traits } ],
             %{ $self->args },
         },
     );

@@ -4,6 +4,8 @@ use warnings;
 use Exporter 'import';
 use Sys::Hostname ();
 
+use Exporter 'import';
+
 our @EXPORT_OK = qw/
     hostname
 /;

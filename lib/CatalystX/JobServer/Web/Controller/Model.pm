@@ -25,7 +25,10 @@ sub inspect : Chained('find') PathPart('') Args(0) {
     my ($self, $c) = @_;
     my $component = $c->stash->{component} or confess("Cannot find ->stash->{component}");
     if ($component->can('pack')) {
-        $c->stash(data => $component);
+        my $data = $component->pack;
+        $data->{__CLASS__} = $component->_original_class_name
+            if $component->can('_original_class_name');;
+        $c->stash(data => $data);
     }
     else {
         $c->detach('/error404');

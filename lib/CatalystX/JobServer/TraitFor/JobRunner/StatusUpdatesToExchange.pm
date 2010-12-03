@@ -15,12 +15,14 @@ has statusupdates_exchange_name => (
     lazy => 1,
 );
 
-after [qw/ _add_running _remove_running /] => sub {
-    my ($self, $job) = @_;
-    my $payload = $job->pack;
-    $payload->{uuid} = $payload->{job}->{uuid} if $payload->{job}->{uuid};
-    $self->publish_message(encode_json($payload), sprintf("job.%s.lifecycle.%s", hostname(), $payload->{uuid}), $self->statusupdates_exchange_name);
-};
+foreach my $name (qw/ _add_running _remove_running /) {
+    after $name => sub {
+        my ($self, $job) = @_;
+        my $payload = $job->pack;
+        $payload->{uuid} = $payload->{job}->{uuid} if $payload->{job}->{uuid};
+        $self->publish_message(encode_json($payload), sprintf("job.%s.lifecycle.%s", hostname(), $payload->{uuid}), $self->statusupdates_exchange_name);
+    };
+}
 
 before update_status => sub {
     my ($self, $job, $data) = @_;

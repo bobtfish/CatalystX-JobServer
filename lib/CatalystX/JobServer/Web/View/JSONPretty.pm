@@ -11,6 +11,7 @@ method process ($c, $data) {
     my @lines = split /\n/, $text;
     foreach (@lines) {
         my ($cut) = $_ =~ m/^(\s+)/;
+        $cut ||= '';
         my $replace = "&nbsp;" x length($cut);
         s/^$cut/$replace/;
     }
@@ -19,3 +20,5 @@ method process ($c, $data) {
 }
 
 __PACKAGE__->meta->make_immutable;
+1;
+

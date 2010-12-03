@@ -1,6 +1,7 @@
 package CatalystX::JobServer::Utils;
 use strict;
 use warnings;
+use Exporter 'import';
 use Sys::Hostname ();
 
 our @EXPORT_OK = qw/

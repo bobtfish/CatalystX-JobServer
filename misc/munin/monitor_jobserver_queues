@@ -47,7 +47,7 @@ Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.p
 =cut
 
 my $host = $FindBin::Script;
-$host =~ s/monitor_jobserver_queues_//;
+$host =~ s/monitor_jobserver_queues_?//;
 $host ||= 'localhost_5000';
 $host =~ s/_(\d+)$/:$1/;
 $host .= ':5000' if $host !~ /:\d+$/;
@@ -55,25 +55,25 @@ $host .= ':5000' if $host !~ /:\d+$/;
 my $ua = LWP::UserAgent->new;
 $ua->timeout(10);
 
-my $res = $ua->get('http://' . $host); #, { Accept => 'application/json' });
-die($res->code . " for " . $host) unless $res->is_success;
+sub get_json_from_url {
+    my $uri = shift;
+    my $res = $ua->get($uri, 'Content-Type' => 'application/json' );
+    Carp::confess($res->code . " for " . $uri) unless $res->is_success;
+    my $data = do { local $@; eval { decode_json($res->content) } };
+    die("Could not decode JSON from: " . $res->content) unless $data;
+    return $data;
+}
 
-my $content = $res->content;
-$content =~ s/.*?<pre>//s; $content =~ s/<\/?pre>.*//s;
-my $data = decode_json($content);
 my %out_data;
+my $components= get_json_from_url("http://$host/model/componentmap");
 
-foreach my $name (keys %$data) {
-    my $res = $ua->get($data->{$name}->{uri}); #, { Accept => 'application/json' });
-    die($res->code . " for " . $data->{$name}->{uri}) unless $res->is_success;
-
-    my $data = decode_json($res->content);
+foreach my $name (keys %$components) {
+    my $data = get_json_from_url($components->{$name}->{uri});
     next unless exists $data->{jobs_running_count};
     $out_data{lc($name)} = $data->{jobs_running_count};
 }
 
-
-if($ARGV[0] and $ARGV[0] eq 'config') {
+if ($ARGV[0] and $ARGV[0] eq 'config') {
     print "graph_title JobServer $host status\n";
     print "graph_category catalystx-jobserver\n";
     print "graph_scale no\n";
@@ -81,16 +81,13 @@ if($ARGV[0] and $ARGV[0] eq 'config') {
     foreach my $name (keys %out_data) {
         print "$name.label $name\n"."$name.type GAUGE\n";
     }
-
-    exit 0;
 }
-elsif(!$ARGV[0] || $ARGV[0] eq 'autoconf') {
+elsif (!$ARGV[0] || $ARGV[0] eq 'autoconf') {
     foreach my $name (keys %out_data) {
         print "$name.value " . $out_data{$name} . "\n";
     }
-    exit 0;
 }
 
-# EOF
+exit(0);
 
 

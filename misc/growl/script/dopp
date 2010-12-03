@@ -1,0 +1,3 @@
+#!/bin/sh
+pp -I lib -M MooseX::Getopt::Meta::Attribute::Trait -M MooseX::Getopt::Basic -M MooseX::Getopt::GLD -M App::TailRabbit -M Moose::Meta::Object::Trait -M MooseX::Getopt::Meta::Attribute::Trait::NoGetopt -M MooseX::ConfigFromFile script/tail_rabbit_growl
+

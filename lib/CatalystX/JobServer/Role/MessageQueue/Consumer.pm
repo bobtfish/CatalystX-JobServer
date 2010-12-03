@@ -10,7 +10,9 @@ with 'CatalystX::JobServer::Role::MessageQueue::HasChannel';
 requires 'consume_message';
 
 after BUILD => sub {
-    shift->build_messagequeue_consumer;
+    my $self = shift;
+    # Cheesy hack to avoid races in Net::RabbitFoor
+    my $t; $t = AnyEvent->timer( after => 1, cb => sub { undef $t; $self->build_messagequeue_consumer });
 };
 
 has _have_built_consumer => (

@@ -3,7 +3,10 @@
 DATA:
 [% c.view('JSONPretty').process(c, data) %]
 
+[% TRY %]
 [% sub_template = 'model/' _ component_name _ '/submenu.tt' %]
 [% INCLUDE $sub_template %]
+[% CATCH %]
+[% END %]
 </body>
 </html>

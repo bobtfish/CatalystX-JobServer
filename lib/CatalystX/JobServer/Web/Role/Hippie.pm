@@ -37,6 +37,8 @@ has handlers => (
 sub hippie : Chained('find') PathPart('_hippie') Args() {
     my ($self, $c, $type, $arg) = @_;
 
+    $c->log->debug("Hippie: $type") if $c->debug;
+
     my $code = $self->_hippie->can("handler_$type");
     unless ($code) {
         $c->log->warn("Cannot find hippe $type handler");

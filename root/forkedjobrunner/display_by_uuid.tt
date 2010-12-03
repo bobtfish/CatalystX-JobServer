@@ -6,5 +6,5 @@
 </script>
 
 <table style="border: 1px" id="progressbars">
-    <tr><th>Status</th><th>Completion %</th></tr>
+    <tr><th>UUID</th><th>Status</th><th>Completion %</th></tr>
 </table>

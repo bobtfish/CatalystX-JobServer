@@ -51,7 +51,7 @@ Module("CatalystX.JobServer.Job", function (m) {
             handleDisplay: function( display ) {
                 this.setProgress_bar_selector('#progressBar' + this.job.uuid);
                 this.setStatus_bar_selector('#statusBar' + this.job.uuid);
-                $(display.getSelector()).append('<tr id="' + this.job.uuid + '"><td id="statusBar' + this.job.uuid + '"></td><td id="progressBar' + this.job.uuid + '"></td></tr>');
+                $(display.getSelector()).append('<tr id="' + this.job.uuid + '"><td class="uuid">' + this.job.uuid + '</td><td class="status" id="statusBar' + this.job.uuid + '"></td><td class="progress" id="progressBar' + this.job.uuid + '"></td></tr>');
                 $(this.progress_bar_selector).progressBar({ boxImage: '/static/images/progressbar.gif', barImage: '/static/images/progressbg.gif'});
                 display.getRunning_jobs()[this.job.uuid] = this;
             }

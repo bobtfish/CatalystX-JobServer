@@ -13,6 +13,7 @@ Model::ForkedJobRunner:
         - JobsByUUID
         - StatusUpdatesToExchange
     args:
+        num_workers: 5
         exchange_name: jobs
         queue_name: jobs_queue
         publish_self_every: 60

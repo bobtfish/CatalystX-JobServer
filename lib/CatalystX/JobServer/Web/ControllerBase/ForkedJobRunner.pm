@@ -55,11 +55,6 @@ sub by_name_list : Chained('by_name') PathPart('') Args(0) {
     }));
 }
 
-sub find : Chained('by_name') PathPart('') CaptureArgs(1) {
-    my ($self, $c, $jobname) = @_;
-    $c->model('ForkedJobRunner')->jobs_registered->flatten;
-}
-
 sub display : Chained('by_name') PathPart('') Args(0) {
     my ($self, $c) = @_;
 }
@@ -71,19 +66,26 @@ sub by_uuid_list : Chained('by_uuid') PathPart('') Args(0) {
     if ($c->req->parameters->{uuid}) {
         $c->res->redirect($c->uri_for($self->action_for('find_by_uuid'), [ $c->req->parameters->{uuid} ]));
     }
+    $c->stash( uuids => [ map { $_->working_on->{uuid} } grep { $_->working_on } $c->stash->{component}->workers->flatten ]);
 }
 
 sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {
     my ($self, $c, $job_uuid) = @_;
-    my $job_model = $c->model('ForkedJobRunner');
-    my $job = $job_model->jobs_by_uuid->{$job_uuid}
-        or $c->detach('/error404');
+    my $job_model = $c->stash->{component};
+    my (@jobs, @job_uuids);
+    foreach my $uuid (split /,/, $job_uuid) {
+        next unless exists $job_model->jobs_by_uuid->{$uuid};
+        push(@jobs, $job_model->jobs_by_uuid->{$uuid});
+        push(@job_uuids, $uuid);
+    }
+    $c->detach('/error404')
+        unless scalar @jobs;
 
     my $path = $c->uri_for($self->action_for('display_by_uuid'), $c->req->captures)->path;
     $path =~ s{/$}{};
     $c->stash(
-        job => $job,
-        job_uuid => $job_uuid,
+        jobs => \@jobs,
+        job_uuids => \@job_uuids,
         job_model => $job_model,
         hippie_path => $path,
     );
@@ -104,14 +106,18 @@ __PACKAGE__->config(
 sub hippie_init {
     my ($self, $c, $env) = @_;
     my $h = $env->{'hippie.handle'};
-    $c->stash->{job_model}->register_listener($c->stash->{job_uuid}, $h);
+    foreach my $uuid (@{$c->stash->{job_uuids} }) {
+        $c->stash->{job_model}->register_listener($uuid, $h);
+    }
 }
 
 sub hippie_error {
     my ($self, $c, $env) = @_;
     my $h = $env->{'hippie.handle'};
     my $job = $c->stash->{job};
-    $c->stash->{job_model}->remove_listener($c->stash->{job_uuid}, $h);
+    foreach my $uuid (@{$c->stash->{job_uuids} }) {
+        $c->stash->{job_model}->remove_listener($uuid, $h);
+    }
 }
 
 

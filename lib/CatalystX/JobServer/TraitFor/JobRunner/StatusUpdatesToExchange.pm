@@ -2,11 +2,7 @@ package CatalystX::JobServer::TraitFor::JobRunner::StatusUpdatesToExchange;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use JSON qw/ encode_json /;
-use Sys::Hostname qw/ hostname /;
-use namespace::autoclean;
-
-my $hostname = hostname();
-$hostname =~ s/\..*//;
+use CatalystX::JobServer::Utils qw/ hostname /;
 
 with qw/
     CatalystX::JobServer::Role::MessageQueue::Publisher
@@ -23,12 +19,12 @@ after [qw/ _add_running _remove_running /] => sub {
     my ($self, $job) = @_;
     my $payload = $job->pack;
     $payload->{uuid} = $payload->{job}->{uuid} if $payload->{job}->{uuid};
-    $self->publish_message(encode_json($payload), "job.$hostname.lifecycle." . $payload->{uuid}, $self->statusupdates_exchange_name);
+    $self->publish_message(encode_json($payload), sprintf("job.%s.lifecycle.%s", hostname(), $payload->{uuid}), $self->statusupdates_exchange_name);
 };
 
 before update_status => sub {
     my ($self, $job, $data) = @_;
-    $self->publish_message(encode_json($data), sprintf("job.$hostname.status.%s", $job->{uuid}), $self->statusupdates_exchange_name);
+    $self->publish_message(encode_json($data), sprintf("job.%s.status.%s", hostname(), $job->{uuid}), $self->statusupdates_exchange_name);
 };
 
 1;

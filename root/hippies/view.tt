@@ -5,6 +5,6 @@
 <script type="text/javascript"> 
     $(function() {
       var manager = new CatalystX.JobServer.JobDisplay.Hippie();
-      manager.displayInside("#progressbars", "/hippies/[% uuids.join(",") %]"); 
+      manager.displayInside("#progressbars", "/hippies/[% keys.join(",") %]"); 
     });
 </script>

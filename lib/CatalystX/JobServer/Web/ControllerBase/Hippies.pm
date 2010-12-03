@@ -36,14 +36,15 @@ has pipes => (
 sub find : Chained('/base') PathPart('hippies') CaptureArgs(1) {
     my ($self, $c, $keys) = @_;
     my @keys = split /,/, $keys;
-    foreach my $key (@keys) {
-        
-    }
-    $c->stash( keys => \@keys );
+    $c->stash(
+        keys => \@keys,
+        routing_keys => [ map { $self->generate_routing_key($_) } @keys ],
+    );
 }
 
-method generate_routing_key {
-    
+method generate_routing_key ($uuid) {
+    $uuid ||= '*';
+    return 'job.*.status.' . $uuid;
 }
 
 sub view : Chained('find') PathPart('') Args(0) {}
@@ -69,7 +70,8 @@ sub hippie_init {
                             $h->send_msg(decode_json($message->{body}->payload));
                         },
                     )}, sub {}]);
-                    foreach my $routing_key ('#') {
+                    foreach my $routing_key (@{ $c->stash->{routing_keys} }) {
+                        warn("Bind $routing_key");
                         unshift(@tasks, [sub {
                             $ch->bind_queue(
                                 queue => $queue_frame->queue,

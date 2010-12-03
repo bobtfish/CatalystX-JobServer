@@ -2,8 +2,9 @@ package CatalystX::JobServer::TraitFor::Model::PublishSelf;
 use CatalystX::JobServer::Moose::Role;
 use MooseX::Types::Moose qw/ Int /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
-use Coro; # We call cede in BUILD.
 use AnyEvent;
+use CatalystX::JobServer::Utils qw/ hostname /;
+use JSON qw/ encode_json /;
 
 with qw/
     CatalystX::JobServer::Role::MessageQueue::Publisher
@@ -35,7 +36,9 @@ has _publish_timer => (
             cb => sub {
                 my $frozen = $self->freeze;
                 #warn("Publishing #self from timer\n");
-                $self->publish_message($self->freeze, '#', $self->publish_self_to);
+                my $data = $self->pack;
+                $data->{__CLASS__} = $self->catalyst_component_name;
+                $self->publish_message(encode_json($data), sprintf('jobserver.%s.status', hostname()), $self->publish_self_to);
             },
         );
     },

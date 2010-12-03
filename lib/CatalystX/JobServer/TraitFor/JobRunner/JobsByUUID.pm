@@ -72,6 +72,7 @@ sub register_listener {
     my ($self, $uuid, $h) = @_;
     return unless exists $self->jobs_by_uuid->{$uuid};
     warn("Added listener for $uuid");
+    $h->send_msg($self->jobs_by_uuid->{$uuid}->pack);
     $self->_jobs_by_uuid_handles->{$uuid}->{refaddr($h)} = $h;
 }
 

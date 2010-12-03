@@ -105,8 +105,6 @@ __PACKAGE__->config(
 sub hippie_init {
     my ($self, $c, $env) = @_;
     my $h = $env->{'hippie.handle'};
-    my $job = $c->stash->{job};
-    $h->send_msg($job->pack);
     $c->stash->{job_model}->register_listener($c->stash->{job_uuid}, $h);
 }
 

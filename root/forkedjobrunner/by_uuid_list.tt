@@ -4,6 +4,8 @@
     <li><a href="[% c.uri_for_action('/forkedjobrunner/display_by_uuid', [ worker.working_on.uuid ] ) %]">[% worker.working_on.uuid %]</li>
 [% END %]
 
+</ul>
+
 <table style="border: 1px" id="progressbars">
     <tr><th>UUID</th><th>Status</th><th>Completion %</th></tr>
 </table>
@@ -14,4 +16,3 @@
       manager.displayInside("#progressbars", "/model/forkedjobrunner/by_uuid/[% uuids.join(",") %]"); 
     });
 </script>
-</ul>

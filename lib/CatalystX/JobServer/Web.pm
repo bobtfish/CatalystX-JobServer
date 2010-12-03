@@ -55,6 +55,16 @@ __PACKAGE__->config(
     }
 );
 
+after setup_components => sub {
+    my ($app) = @_;
+    return unless $app->config->{hippies};
+    CatalystX::InjectComponent->inject(
+        into => $app,
+        component => 'CatalystX::JobServer::Web::ControllerBase::Hippies',
+        as => 'Controller::Hippies',
+    );
+};
+
 __PACKAGE__->setup();
 __PACKAGE__->setup_engine('PSGI');
 

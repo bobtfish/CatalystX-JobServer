@@ -1,0 +1,10 @@
+<table style="border: 1px" id="progressbars">
+    <tr><th>UUID</th><th>Status</th><th>Completion %</th></tr>
+</table>
+
+<script type="text/javascript"> 
+    $(function() {
+      var manager = new CatalystX.JobServer.JobDisplay.Hippie();
+      manager.displayInside("#progressbars", "/hippies/[% uuids.join(",") %]"); 
+    });
+</script>

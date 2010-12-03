@@ -1,6 +1,10 @@
+<hr />
+<h2>Menu:</h2>
 <ul>
+    [% IF c.stash.component.can('jobs_by_uuid') %]
     <li><a href="[% c.uri_for_action('/forkedjobrunner/by_uuid_list', [] ) %]">List of jobs by UUID</a></li>
-    <li><form action="[% c.uri_for_action( '/forkedjobrunner/by_uuid', [] ) %]" method="GET"><input type="text" name="uuid"><input type="submit" /></form></li>
+    <li> <form action="[% c.uri_for_action( '/forkedjobrunner/by_uuid', [] ) %]" method="GET"><legend>Lookup one job by UUID:</legend><input type="text" name="uuid"><input type="submit" value="Go" /></form></li>
+    [% END %]
     <li><form action="[% c.uri_for_action( '/forkedjobrunner/add_worker', [] ) %]" method="POST"><input type="submit" value="Add worker" /></form></li>
    [% IF c.stash.component.can_remove_worker %]<li><form action="[% c.uri_for_action( '/forkedjobrunner/remove_worker' ) %]" method="POST"><input type="submit" value="Remove worker" /></form></li>[% END %]   
 </ul>

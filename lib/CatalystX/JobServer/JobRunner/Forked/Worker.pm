@@ -10,6 +10,21 @@ use POSIX qw( EAGAIN );
 use Scalar::Util qw/ blessed /;
 use CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete;
 
+my $argc_top = 0;
+foreach my $type (qw/ before after /) {
+    my $argc = $argc_top++;
+    has "eval_${type}_job" => (
+        is => 'ro',
+        default => sub {
+            my $codestring = $ARGV[$argc];
+            my $closure = defined($codestring) ? eval "sub { Try::Tiny::try {" . $codestring . "}; };" : sub {};
+            die("Could not compile $codestring - failed with excpetion $@")
+                unless $closure;
+            return $closure;
+        },
+    );
+}
+
 method run {
     $0 = 'perl jobserver_worker [idle]';
     STDOUT->autoflush(1);
@@ -52,8 +67,9 @@ method json_object ($data) {
         exit 1;
     };
     $0 = "perl jobserver_worker [running $running_class]";
+    $self->eval_before_job->();
     try {
-        my $cb = sub { local $@; eval { print "\x00" . shift->freeze . "\xff" } };
+        my $cb = sub { my $to_send = shift; try { print "\x00" . $to_send->freeze . "\xff" } catch { warn "Caught exception freezing status message: $_"} };
         $ret = $instance->run($cb);
     }
     catch {
@@ -76,6 +92,7 @@ method json_object ($data) {
         warn("Job indicated unsuccessful exit, dieing");
         exit 1;
     }
+    $self->eval_after_job->();
     $0 = 'perl jobserver_worker [idle]';
 }
 

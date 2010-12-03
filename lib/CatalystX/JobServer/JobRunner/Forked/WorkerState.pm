@@ -3,6 +3,7 @@ use CatalystX::JobServer::Moose;
 use AnyEvent::Util qw/ portable_pipe /;
 use MooseX::Types::Moose qw/ HashRef Int CodeRef Bool Str /;
 use MooseX::Types::ISO8601 qw/ ISO8601DateTimeStr /;
+use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use AnyEvent;
 use AnyEvent::Handle;
 use AnyEvent::Util qw/ close_all_fds_except /;
@@ -112,6 +113,19 @@ has _respawn_every_timer => (
         );
     },
     init_arg => undef,
+);
+
+foreach my $type (qw/ before after /) {
+    has "eval_${type}_job" => (
+        is => 'ro',
+        default => "",
+    );
+}
+
+has worker_class => (
+    is => 'ro',
+    isa => NonEmptySimpleStr,
+    default => 'CatalystX::JobServer::JobRunner::Forked::Worker',
 );
 
 method BUILD {
@@ -273,8 +287,9 @@ method _spawn_worker_if_needed {
             foreach my $lib (@INC) {
                 push(@cmd, '-I', $lib);
             }
-            push (@cmd, '-MCatalystX::JobServer::JobRunner::Forked::Worker');
-            push(@cmd, '-e', 'CatalystX::JobServer::JobRunner::Forked::Worker->new->run');
+            push (@cmd, '-M' . $self->worker_class);
+            push(@cmd, '-e', $self->worker_class . '->new->run');
+            push(@cmd, $self->eval_before_job, $self->eval_after_job);
             exec( @cmd );
         }
         catch {

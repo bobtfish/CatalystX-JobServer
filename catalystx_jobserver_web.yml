@@ -22,6 +22,9 @@ Model::ForkedJobRunner:
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
         statusupdates_exchange_name: firehose
+#        worker_config:
+#           eval_before_job: "warn(qq{MEEEEP BEFORE $$});"
+#           eval_after_job: "warn(qq{MEEEEP AFTER $$});"
 Model::FireHoseLog:
     class: "CatalystX::JobServer::LogWriter"
     args:

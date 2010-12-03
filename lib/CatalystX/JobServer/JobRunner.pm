@@ -46,14 +46,8 @@ method consume_message ($message) {
 }
 
 method job_finished ($job, $output){
-    my $finished = Finished->new(job => $job);
+    my $finished = Finished->new(job => $job, ok => $output->ok);
     $finished->finalize();
-    $self->_remove_running($finished);
-}
-
-method job_failed ($job, $error) {
-    my $finished = Finished->new(job => $job, ok => 0);
-    $finished->finalize;
     $self->_remove_running($finished);
 }
 

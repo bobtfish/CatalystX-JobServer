@@ -75,11 +75,11 @@ has update_status_cb => (
     predicate => '_has_update_status_cb',
 );
 
-method job_finished ($output) {
+method job_finished ($end_status) {
     my $working_on = $self->working_on;
     $self->_clear_working_on;
     try {
-        $self->job_finished_cb->(encode_json($working_on), $output)
+        $self->job_finished_cb->(encode_json($working_on), $end_status)
             if $self->_has_job_finished_cb;
     }
     catch {

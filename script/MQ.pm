@@ -49,13 +49,11 @@ sub _bind_anon_queue_to_firehose {
 sub _get_channel {
     my ($self, $rf) = @_;
     my $ch = $rf->open_channel();
-    warn("Got channel");
     my $exch_frame = $ch->declare_exchange(
         type => 'topic',
         durable => 1,
         exchange => 'firehose',
     )->method_frame;
-    warn("Got exchange");
     die Dumper($exch_frame) unless blessed $exch_frame and $exch_frame->isa('Net::AMQP::Protocol::Exchange::DeclareOk');
     return $ch;
 }

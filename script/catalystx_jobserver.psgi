@@ -4,7 +4,7 @@ use warnings;
 use FindBin qw/$Bin/;
 use lib "$Bin/../lib";
 use CatalystX::JobServer ();
-use Coro;
+use Twiggy;
 use AnyEvent;
 use aliased 'CatalystX::JobServer::Web';
 use Plack::Runner;
@@ -37,12 +37,15 @@ $map->map('/static' => Plack::App::Cascade->new(
 
 $map->map('/' => sub { CatalystX::JobServer::Web->run(@_) });
 
-my $runner = Plack::Runner->new(server => 'Corona', env => 'deployment');
-$runner->parse_options(@ARGV);
+my $host = '127.0.0.1';
+my $port = '5000';
 
-async {
-    $runner->run($map->to_app);
-};
+use Twiggy::Server;
+my $server = Twiggy::Server->new(
+     host => $host,
+      port => $port,
+);
+$server->register_service($map->to_app);
 
 $RUNNING->send;
 $TERMINATE->recv;

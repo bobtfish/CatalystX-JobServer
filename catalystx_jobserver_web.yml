@@ -5,28 +5,13 @@ Model::MessageQueue:
         port: 5672
         host: localhost
         vhost: /
-        channels:
-            firehose:
-                exchanges:
-                    - type: topic
-                      durable: 1
-                      exchange: firehose
-                queues:
-# FIXME - Needs to go away if not listening, be anon - fixme!
-                    - queue: firehose_log
-                      durable: 1
-                      bind:
-                          exchange: firehose
-                          routing_key: "#"
-                dispatch_to: FireHoseLog
-                results_exchange: firehose
-                results_routing_key: ""
 Model::ForkedJobRunner:
     class: "CatalystX::JobServer::JobRunner::Forked"
     traits:
         - SendTestJobs
         - PublishSelf
         - JobsByUUID
+        - StatusUpdatesToExchange
     args:
         exchange_name: jobs
         queue_name: jobs_queue
@@ -34,8 +19,7 @@ Model::ForkedJobRunner:
         publish_self_to: firehose
         jobs_registered:
             - "CatalystX::JobServer::Job::Test::RunForThirtySeconds"
-        job_finished_callback: "warn('JOB FINISHED')"
-        debug_messages_consumed: "1"
+        statusupdates_exchange_name: firehose
 Model::FireHoseLog:
     class: "CatalystX::JobServer::LogWriter"
     args:

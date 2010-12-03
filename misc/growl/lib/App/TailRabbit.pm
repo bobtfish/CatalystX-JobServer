@@ -29,11 +29,13 @@ has routing_key => (
 );
 
 has rabbitmq_host => (
+    isa => NonEmptySimpleStr,
     is => 'ro',
     default => 'localhost',
 );
 
 has [qw/ rabbitmq_user rabbitmq_pass /] => (
+    isa => NonEmptySimpleStr,
     is => 'ro',
     default => 'guest',
 );
@@ -85,7 +87,6 @@ sub _bind_anon_queue {
     my @keys = @{ $self->routing_key };
     push(@keys, "#") unless scalar @keys;
     foreach my $key (@keys) {
-        warn("Bind to $key");
         my $bind_frame = $ch->bind_queue(
             queue => $queue_frame->queue,
             exchange => $self->exchange_name,

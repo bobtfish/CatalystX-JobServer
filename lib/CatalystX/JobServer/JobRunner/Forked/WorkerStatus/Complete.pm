@@ -13,5 +13,10 @@ has ok => (
     traits => ['Serialize'],
 );
 
+has output => (
+    is => 'ro',
+    traits => ['Serialize'],
+);
+
 __PACKAGE__->meta->make_immutable;
 1;

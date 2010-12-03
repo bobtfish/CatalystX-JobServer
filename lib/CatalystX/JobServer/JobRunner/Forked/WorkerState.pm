@@ -16,6 +16,7 @@ use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete';
 use Try::Tiny;
 use POSIX ();
 use namespace::autoclean;
+use CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete;
 no warnings 'syntax'; # "Statement unlikely to be reached"
 
 with 'CatalystX::JobServer::Role::Storage';
@@ -178,7 +179,7 @@ method __on_error ($hdl, $fatal, $msg) {
     $self->_clear_pid;
     $self->_clear_ae_handle;
     if ($self->working_on) {
-        $self->job_finished($error);
+        $self->job_finished(CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete->new( ok => 0, output => $error));
     }
     $self->_clear_working_on;
     $self->_clear_worker_started_at;
@@ -288,7 +289,7 @@ method _spawn_worker_if_needed {
                 push(@cmd, '-I', $lib);
             }
             push (@cmd, '-M' . $self->worker_class);
-            push(@cmd, '-e', $self->worker_class . '->new->run');
+            push(@cmd, '-e', $self->worker_class . '->new(ppid => ' . $$ . ')->run');
             push(@cmd, $self->eval_before_job, $self->eval_after_job);
             exec( @cmd );
         }

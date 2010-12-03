@@ -1,7 +1,7 @@
 package CatalystX::JobServer::JobRunner::Forked::Worker;
 use CatalystX::JobServer::Moose;
 use MooseX::Types::LoadableClass qw/ LoadableClass /;
-#use MooseX::Types::Moose qw/ ArrayRef /;
+use MooseX::Types::Moose qw/ Int /;
 use JSON;
 use Try::Tiny;
 use IO::Handle;
@@ -24,6 +24,12 @@ foreach my $type (qw/ before after /) {
         },
     );
 }
+
+has ppid => (
+    isa => Int,
+    is => 'ro',
+    required => 1,
+);
 
 method run {
     $0 = 'perl jobserver_worker [idle]';
@@ -49,6 +55,7 @@ method run {
         }
         confess("Got EOF from parent: $!") if (!defined $bytes && $! != EAGAIN);
         sleep 1; # FIXME - Cheesy hack!
+        exit 0 if (!kill 0, $self->ppid);
     }
 }
 

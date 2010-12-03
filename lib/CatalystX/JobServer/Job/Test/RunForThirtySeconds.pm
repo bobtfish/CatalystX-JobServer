@@ -28,8 +28,8 @@ has uuid => (
 method run ($cb) {
     for (1..10) {
         sleep 3 + int($self->val);
-        $cb->(StatusLine->new("Hello there, this is loop iteration $_"));
-        $cb->(CompletionEstimate->new(step_count => 10, steps_taken => $_));
+        $cb->(StatusLine->new(status_info => "Hello there, this is loop iteration $_", uuid => $self->uuid));
+        $cb->(CompletionEstimate->new(step_count => 10, steps_taken => $_, uuid => $self->uuid));
     }
     return $self;
 }

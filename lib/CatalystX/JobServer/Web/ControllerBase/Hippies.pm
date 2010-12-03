@@ -3,7 +3,7 @@ use CatalystX::JobServer::Moose;
 use Try::Tiny;
 use Scalar::Util qw/ refaddr /;
 use JSON qw/ decode_json /;
-use MooseX::Types::Moose qw/ HashRef /;
+use MooseX::Types::Moose qw/ HashRef ArrayRef /;
 
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -20,20 +20,30 @@ __PACKAGE__->config(
     },
 );
 
+has exchange_and_routing_keys => (
+    is => 'ro',
+    isa => ArrayRef[ArrayRef],
+    default => sub { [] },
+);
+
 has pipes => (
+    init_arg => undef,
     is => 'ro',
     isa => HashRef,
-    traits => ['Hash'],
     default => sub { {} },
-    handles => {
-        
-    },
 );
 
 sub find : Chained('/base') PathPart('hippies') CaptureArgs(1) {
     my ($self, $c, $keys) = @_;
     my @keys = split /,/, $keys;
+    foreach my $key (@keys) {
+        
+    }
     $c->stash( keys => \@keys );
+}
+
+method generate_routing_key {
+    
 }
 
 sub view : Chained('find') PathPart('') Args(0) {}
@@ -41,25 +51,21 @@ sub view : Chained('find') PathPart('') Args(0) {}
 sub hippie_init {
     my ($self, $c, $env) = @_;
     my $h = $env->{'hippie.handle'};
-    try {
-    warn("Init");
     my $mq = $c->model('MessageQueue');
-    warn("MQ");
-    my $ch = $mq->mq->{_ar}->open_channel(
+    $mq->mq->{_ar}->open_channel(
         on_success => sub {
             my $ch = shift;
-            warn("Channel");
+            $self->pipes->{refaddr($h)} = $ch;
             $ch->declare_queue(
                 auto_delete => 1,
                 exclusive => 1,
                 on_success => sub {
                     my $queue_frame = shift->method_frame;
-                    warn("queue");
-                    my @tasks = ([sub { warn("Start consumer"); $ch->consume(
+                    my @tasks = ([sub { $ch->consume(
                         on_consume => sub {
                             my $message = shift;
                             print $message->{deliver}->method_frame->routing_key,
-                            ': ', $message->{body}->payload, "\n";
+                            ': ', $message->{body}->payload, "\n" if $c->debug;
                             $h->send_msg(decode_json($message->{body}->payload));
                         },
                     )}, sub {}]);
@@ -75,7 +81,6 @@ sub hippie_init {
                             sub {
                                 my $bind_frame = shift->method_frame;
                                 die Dumper($bind_frame) unless blessed $bind_frame and $bind_frame->isa('Net::AMQP::Protocol::Queue::BindOk');
-                                warn("Bind");
                             }
                         ]);
                     }
@@ -83,7 +88,6 @@ sub hippie_init {
                         return unless scalar @tasks;
                         my $task = shift(@tasks);
                         my ($do, $success) = @$task;
-                        warn("Do $do success $success");
                         $do->(sub { $success->(@_); $work->() });
                     };
                     $work->();
@@ -91,10 +95,8 @@ sub hippie_init {
                 on_failure => sub { warn("Failed to declare queue") },
             );
         },
-        on_failure => sub { warn("Failed to open channel")},
-    );
-    $self->pipes->{refaddr($h)} = $ch;
-} catch { warn $_; };
+        on_failure => sub { warn("Failed to open channel" . Data::Dumper::Dumper(shift))},
+    );;
 }
 
 sub hippie_error {

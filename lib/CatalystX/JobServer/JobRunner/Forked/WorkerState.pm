@@ -11,7 +11,6 @@ use CatalystX::JobServer::Job::Finished;
 use CatalystX::JobServer::Job::Running;
 use DateTime;
 use JSON qw/ decode_json encode_json /;
-use Coro; # For killing dead processes after timeout.
 use aliased 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete';
 use Try::Tiny;
 use POSIX ();
@@ -171,18 +170,14 @@ method __on_error ($hdl, $fatal, $msg) {
     $self->_clear_worker_started_at;
     $self->_clear_sigchld_handle;
 
-    async {
-        my $cv = AnyEvent->condvar;
-        my $w = AnyEvent->timer( after => 10, cb => sub {
-            if (kill 0, $pid) {
-                warn "Child $pid did not gracefully close, killing hard!";
-                kill 9, $pid;
-            }
-            $self->_spawn_worker_if_needed; # And try spawning a new one..
-            $cv->send;
-        });
-        $cv->recv;
-    };
+    my $w; $w = AnyEvent->timer( after => 10, cb => sub {
+        undef $w;
+        if (kill 0, $pid) {
+            warn "Child $pid did not gracefully close, killing hard!";
+            kill 9, $pid;
+        }
+        $self->_spawn_worker_if_needed; # And try spawning a new one..
+     });
 }
 
 method __on_read ($hdl) {
@@ -214,7 +209,7 @@ method _spawn_worker_if_needed {
         Carp::confess("Ran out of filehandles trying to spawn sub process");
     }
     my $pid = fork;
-    if (!defined $pid) {
+    if (!defined $pid) { # Child
         undef $to_r;
         undef $to_w;
         undef $from_r;
@@ -249,6 +244,12 @@ method _spawn_worker_if_needed {
                 $self->__on_error($self->_ae_handle, undef, 'Caught SIGCHLD');
             },
         ));
+        my $check_alive; $check_alive = AnyEvent->timer( after => 10, interval => 10, cb => sub {
+            unless(kill(0, $pid)) {
+                undef $check_alive; # We have served our purpose, stop timer
+                $self->__on_error($self->_ae_handle, undef, 'Child died (unnoticed)');
+            }
+        });
         $self->worker_started_at(DateTime->now);
         return $pid;
     }

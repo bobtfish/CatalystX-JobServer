@@ -2,7 +2,6 @@ package CatalystX::JobServer;
 use strict;
 use warnings;
 use EV ();
-use Coro ();
 use AnyEvent ();
 
 our $VERSION = '0.000001';

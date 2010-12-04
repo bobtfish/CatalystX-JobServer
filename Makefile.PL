@@ -17,7 +17,7 @@ requires 'Moose';
 requires 'namespace::autoclean';
 requires 'YAML';
 requires 'Catalyst::Engine::PSGI' => '0.11'; # At least bf871c7
-requires 'Twiggy' => '0.1008'; # Actually, at least 98f79ef
+requires 'Twiggy' => '0.1009'; # At least 98f79ef
 requires 'EV';
 requires 'Net::RabbitFoot';
 requires 'Web::Hippie' => '0.32'; # At least 404befa

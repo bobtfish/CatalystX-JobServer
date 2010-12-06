@@ -23,7 +23,6 @@ requires 'Net::RabbitFoot';
 requires 'Web::Hippie' => '0.32'; # At least 404befa
 requires 'Log::Message::Structured';
 requires 'MooseX::Types::ISO8601';
-requires 'MooseX::Clone';
 requires 'MooseX::Storage' => '0.28';
 requires 'MooseX::Types::Structured';
 requires 'MooseX::Types::Path::Class';

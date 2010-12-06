@@ -65,7 +65,7 @@ sub get_config_from_file {
 }
 
 has 'configfile' => (
-    default => file(File::HomeDir->my_data(), ".tailrabbit.yml")->stringify,
+    default => file(File::HomeDir->my_home(), ".tailrabbit.yml")->stringify,
     is => 'bare',
 );
 

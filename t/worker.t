@@ -28,7 +28,7 @@ use JSON qw/ encode_json /;
     }
 }
 
-my $w = MyWorker->new;
+my $w = MyWorker->new( ppid => 1);
 ok $w, 'Have worker';
 
 my $data = { __CLASS__ => 'TestJob' };

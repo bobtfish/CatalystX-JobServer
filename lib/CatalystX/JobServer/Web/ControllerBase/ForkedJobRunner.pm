@@ -66,7 +66,10 @@ sub by_uuid_list : Chained('by_uuid') PathPart('') Args(0) {
     if ($c->req->parameters->{uuid}) {
         $c->res->redirect($c->uri_for($self->action_for('find_by_uuid'), [ $c->req->parameters->{uuid} ]));
     }
-    $c->stash( uuids => [ map { $_->working_on->{uuid} } grep { $_->working_on } $c->stash->{component}->workers->flatten ]);
+    $c->stash(
+        uuids => [ map { $_->working_on->{uuid} } grep { $_->working_on } $c->stash->{component}->workers->flatten ],
+        template => 'forkedjobrunner/by_uuid_list.tt',
+    );
 }
 
 sub find_by_uuid : Chained('by_uuid') PathPart('') CaptureArgs(1) {

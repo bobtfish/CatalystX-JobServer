@@ -17,6 +17,7 @@ use Try::Tiny;
 use POSIX ();
 use namespace::autoclean;
 use CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete;
+use DateTime;
 no warnings 'syntax'; # "Statement unlikely to be reached"
 
 with 'CatalystX::JobServer::Role::Storage';
@@ -86,7 +87,7 @@ method job_finished ($end_status) {
     }
     catch {
         require Data::Dumper;
-        warn("Caught exception finishing working: $_ working_on was " . Data::Dumper::Dumper($working_on));
+        warn(DateTime->now . " Caught exception finishing working: $_ working_on was " . Data::Dumper::Dumper($working_on));
     };
 }
 
@@ -168,7 +169,7 @@ method __on_error ($hdl, $fatal, $msg) {
 
     my $pid = $self->pid;
     my $error = "got error from child $pid, destroying handle: $msg\n";
-    warn $error;
+    warn(DateTime->now . " " . $error);
 
     if ($pid && $pid != $CatalystX::JobServer::Web::PID) {
         kill(15, $pid) if (kill 0, $pid);
@@ -191,7 +192,7 @@ method __on_error ($hdl, $fatal, $msg) {
         undef $w;
         if ($pid && $pid != $CatalystX::JobServer::Web::PID) {
             if (kill 0, $pid) {
-                warn "Child $pid did not gracefully close, killing hard!";
+                warn(DateTime->now . " Child $pid did not gracefully close, killing hard!");
                 kill 9, $pid;
             }
         }
@@ -205,12 +206,12 @@ method __on_read ($hdl) {
     while ( $self->get_json_from_buffer(\$buf, sub {
         my $data = shift;
         unless (ref($data) eq 'HASH' && $data->{__CLASS__}) {
-            warn("Found crap in the output stream: " . $data);
+            warn(DateTime->now . " Found crap in the output stream: " . $data);
             return;
         }
         Class::MOP::load_class($data->{__CLASS__});
         $data = try { $data->{__CLASS__}->unpack($data) }
-            catch { warn("Could not unserialize " . Data::Dumper::Dumper($data) . " $_") };
+            catch { warn(DateTime->now . " Could not unserialize " . Data::Dumper::Dumper($data) . " $_") };
         if ($data) {
             if ($data->is_complete) {
                 $self->job_finished($data);
@@ -298,7 +299,7 @@ method _spawn_worker_if_needed {
             exec( @cmd );
         }
         catch {
-            warn("Caught exception in sub-process running worker: $_");
+            warn(DateTime->now . " Caught exception in sub-process running worker: $_");
             POSIX::_exit(255);
         };
     }

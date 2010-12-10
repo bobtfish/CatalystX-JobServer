@@ -138,7 +138,7 @@ method BUILD {
 method DEMOLISH {
     # Quit all our workers
     kill 15, $self->pid
-        if $self->pid;
+        if ($self->pid && $self->pid != $CatalystX::JobServer::Web::PID);
 }
 
 method run_job ($job) {
@@ -170,7 +170,9 @@ method __on_error ($hdl, $fatal, $msg) {
     my $error = "got error from child $pid, destroying handle: $msg\n";
     warn $error;
 
-    kill(15, $pid) if (kill 0, $pid);
+    if ($pid && $pid != $CatalystX::JobServer::Web::PID) {
+        kill(15, $pid) if (kill 0, $pid);
+    }
     $hdl->destroy if $hdl;
     close($self->_write_handle) if $self->_write_handle;
     $self->_clear_write_handle;
@@ -187,9 +189,11 @@ method __on_error ($hdl, $fatal, $msg) {
 
     my $w; $w = AnyEvent->timer( after => 10, cb => sub {
         undef $w;
-        if (kill 0, $pid) {
-            warn "Child $pid did not gracefully close, killing hard!";
-            kill 9, $pid;
+        if ($pid && $pid != $CatalystX::JobServer::Web::PID) {
+            if (kill 0, $pid) {
+                warn "Child $pid did not gracefully close, killing hard!";
+                kill 9, $pid;
+            }
         }
         $self->_spawn_worker_if_needed; # And try spawning a new one..
      });
@@ -227,7 +231,7 @@ method _spawn_worker_if_needed {
         Carp::confess("Ran out of filehandles trying to spawn sub process");
     }
     my $pid = fork;
-    if (!defined $pid) { # Child
+    if (!defined $pid) { # Error
         undef $to_r;
         undef $to_w;
         undef $from_r;
@@ -289,7 +293,7 @@ method _spawn_worker_if_needed {
                 push(@cmd, '-I', $lib);
             }
             push (@cmd, '-M' . $self->worker_class);
-            push(@cmd, '-e', $self->worker_class . '->new(ppid => ' . $$ . ')->run');
+            push(@cmd, '-e', $self->worker_class . '->new(ppid => ' . $CatalystX::JobServer::Web::PID . ')->run');
             push(@cmd, $self->eval_before_job, $self->eval_after_job);
             exec( @cmd );
         }

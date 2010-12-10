@@ -15,6 +15,8 @@ use Catalyst qw/
 
 extends 'Catalyst';
 
+our $PID = $$;
+
 has instance_queue_name => (
     isa => NonEmptySimpleStr,
     is => 'ro',

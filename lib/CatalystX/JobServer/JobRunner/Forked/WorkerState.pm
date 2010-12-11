@@ -270,6 +270,7 @@ method _spawn_worker_if_needed {
         my $check_alive; $check_alive = AnyEvent->timer( after => 10, interval => 10, cb => sub {
             unless(kill(0, $pid)) {
                 undef $check_alive; # We have served our purpose, stop timer
+                return unless $self->pid; # May have already been reaped
                 $self->__on_error($self->_ae_handle, undef, 'Child died (unnoticed)');
             }
         });

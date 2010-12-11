@@ -5,9 +5,12 @@ use Test::Exception;
 use AnyEvent;
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
+use JSON qw/ encode_json /;
 
 use CatalystX::JobServer::JobRunner::Forked;
 use TestJob;
+
+$CatalystX::JobServer::Web::PID = $$;
 
 {
     package TestJobRunner;
@@ -15,6 +18,7 @@ use TestJob;
 
     extends 'CatalystX::JobServer::JobRunner::Forked';
 
+    with 'CatalystX::JobServer::TraitFor::JobRunner::JobsByUUID';
     with 'TestMethodCalledWithin' => {
         method => 'job_finished',
     };
@@ -40,10 +44,29 @@ my $pid = $workerstate->pid;
 ok kill(0, $pid), 'Child PID started';
 
 is $jobs->jobs_running_count, 0;
-$jobs->run_job('{"__CLASS__": "TestJob"}');
+$jobs->run_job(encode_json({"__CLASS__" => "TestJob", return => 1, exit => 0, uuid => "foo"}));
 is $jobs->jobs_running_count, 1;
+ok $jobs->jobs_by_uuid->{'foo'};
 $jobs->test_job_finished_called;
 is $jobs->jobs_running_count, 0;
+ok !$jobs->jobs_by_uuid->{'foo'};
+is scalar(keys %{ $jobs->jobs_by_uuid }), 0;
+
+$jobs->run_job(encode_json({"__CLASS__" => "TestJob", return => 0, exit => 0, uuid => "bar"}));
+is $jobs->jobs_running_count, 1;
+ok $jobs->jobs_by_uuid->{'bar'};
+$jobs->test_job_finished_called;
+is $jobs->jobs_running_count, 0;
+ok !$jobs->jobs_by_uuid->{'bar'};
+is scalar(keys %{ $jobs->jobs_by_uuid }), 0;
+
+$jobs->run_job(encode_json({"__CLASS__" => "TestJob", return => 1, exit => 1, uuid => "baz"}));
+is $jobs->jobs_running_count, 1;
+ok $jobs->jobs_by_uuid->{'baz'};
+$jobs->test_job_finished_called;
+is $jobs->jobs_running_count, 0;
+ok !$jobs->jobs_by_uuid->{'baz'};
+is scalar(keys %{ $jobs->jobs_by_uuid }), 0;
 
 done_testing;
 

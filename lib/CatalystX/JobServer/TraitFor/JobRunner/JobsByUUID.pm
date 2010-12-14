@@ -36,12 +36,12 @@ after _remove_running => sub {
     }
 };
 
-before _remove_job_by_uuid => sub {
+after _remove_job_by_uuid => sub {
     my ($self, $uuid) = @_;
     delete $self->_jobs_by_uuid_handles->{$uuid};
 };
 
-before _add_job_by_uuid => sub {
+after _add_job_by_uuid => sub {
     my ($self, $uuid) = @_;
     $self->_jobs_by_uuid_handles->{$uuid} = {};
 };

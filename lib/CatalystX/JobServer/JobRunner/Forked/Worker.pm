@@ -95,10 +95,6 @@ method json_object ($data) {
         warn "CAUGHT EXCEPTION FREEZING RESPONSE: $_ dieing..";
         exit 1;
     };
-    unless ($ok) {
-        warn("Job indicated unsuccessful exit, dieing");
-        exit 1;
-    }
     $self->eval_after_job->();
     $0 = 'perl jobserver_worker [idle]';
 }

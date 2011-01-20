@@ -76,14 +76,13 @@ sub hippie_init {
                             ': ', $message->{body}->payload, "\n" if $c->debug;
                             my $data = decode_json($message->{body}->payload);
                             if ($data->{__CLASS__} eq 'CatalystX::JobServer::JobRunner::Forked::WorkerStatus::RunJob') {
-                                #warn("GOT A JUST ENQUEUED JOB");
                                 my $new_job = $data->{job};
                                 if ($new_job->{uuid}) {
                                     $ch->bind_queue(
                                         queue => $queue_frame->queue,
                                         exchange => $self->exchange_name,
                                         routing_key => $self->generate_routing_key($new_job->{uuid}),
-                                        on_success => sub { },#warn("Bound new job") },
+                                        on_success => sub { },
                                         on_failure => sub { warn("Failed to bind") },
                                     );
                                 }
@@ -92,7 +91,6 @@ sub hippie_init {
                         },
                     )}, sub {}]);
                     foreach my $routing_key (@{ $c->stash->{routing_keys} }) {
-                        #warn("Bind $routing_key");
                         unshift(@tasks, [sub {
                             $ch->bind_queue(
                                 queue => $queue_frame->queue,

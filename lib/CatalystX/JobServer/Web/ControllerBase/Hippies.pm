@@ -35,12 +35,15 @@ has pipes => (
 
 has exchange_name => (
     is => 'ro',
-    default => 'firehose',
+    required => 1,
 );
 
 sub find : Chained('/base') PathPart('hippies') CaptureArgs(1) {
     my ($self, $c, $keys) = @_;
     my @keys = split /,/, $keys;
+
+    die("AMQP wildcards not allowed") if $keys =~ /[\*#]/;
+
     $c->stash(
         keys => \@keys,
         routing_keys => [ map { $self->generate_routing_key($_) } @keys ],
@@ -48,7 +51,6 @@ sub find : Chained('/base') PathPart('hippies') CaptureArgs(1) {
 }
 
 method generate_routing_key ($uuid) {
-    $uuid ||= '*';
     return 'job.*.status.' . $uuid;
 }
 

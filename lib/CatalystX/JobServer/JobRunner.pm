@@ -41,9 +41,9 @@ has jobs_registered => (
     traits => ['Serialize'],
 );
 
-method consume_message ($message) {
-    $self->run_job($message->{body}->payload);
-}
+#method consume_message ($message) {
+#    $self->run_job($message->{body}->payload);
+#}
 
 method job_finished ($job, $output){
     my $finished = Finished->new(job => $job, ok => $output->ok);
@@ -51,18 +51,17 @@ method job_finished ($job, $output){
     $self->_remove_running($finished);
 }
 
-method run_job ($job) {
+#method run_job ($job) {
 #    warn("do_run_job " . Dumper ($running_job));
-    $self->_do_run_job($job);
-}
+#    $self->_do_run_job($job);
+#}
 
 method update_status ($job, $data) { }
 
-requires '_do_run_job';
+#requires '_do_run_job';
 
 with qw/
     CatalystX::JobServer::Role::MessageQueue::BindsAQueue
-    CatalystX::JobServer::Role::MessageQueue::Consumer
 /;
 
 1;

@@ -20,7 +20,16 @@ use CatalystX::JobServer::JobRunner::Forked::WorkerStatus::Complete;
 use DateTime;
 no warnings 'syntax'; # "Statement unlikely to be reached"
 
-with 'CatalystX::JobServer::Role::Storage';
+with qw/
+    CatalystX::JobServer::Role::Storage
+    CatalystX::JobServer::Role::MessageQueue::DeclaresQueue
+/;
+
+has arc => (
+    is => 'ro',
+    isa => 'AnyEvent::RabbitMQ::Channel',
+    required => 1,
+);
 
 foreach (qw/ ae write read sigchld/) {
     has "_${_}_handle" => (
@@ -45,6 +54,44 @@ has working_on => (
     init_arg => undef,
     traits => ['Serialize'],
 );
+
+has get_new_job_timer => (
+    is => 'ro',
+    lazy => 1,
+    builder => '_build_get_new_job_timer',
+    clearer => '_clear_get_new_job_timer',
+);
+
+after _clear_working_on => sub {
+    warn("Clearing get new job timer");
+    shift->get_new_job_timer;
+};
+
+method _build_get_new_job_timer {
+    warn("Building get new job timer");
+    AnyEvent->timer(after => 0, interval => 2, cb => sub {
+        warn("Get new job timer fired");
+        $self->arc->get(
+            queue => $self->queue_name,
+            on_success => sub {
+                my $message = shift;
+                if ($message->{ok}) {
+                    warn("Got a job from " . $self->queue_name . " " . $message->{body}->payload);
+                    $self->_clear_get_new_job_timer;
+                    $self->run_job($message->{body}->payload);
+                }
+                else {
+                    warn($self->queue_name . " idle");
+                    return if $message->{empty};
+                    warn Data::Dumper::Dumper($message);
+                }
+            },
+            on_failure => sub {
+                Carp::cluck("Getting message from " . $self->queue_name . " unexpectedly failed: " . Data::Dumper::Dumper(shift()));
+            },
+        );
+    });
+}
 
 has worker_started_at => (
     isa => ISO8601DateTimeStr,
@@ -275,6 +322,7 @@ method _spawn_worker_if_needed {
             }
         });
         $self->worker_started_at(DateTime->now);
+        $self->get_new_job_timer;
         return $pid;
     }
     elsif ($pid == 0) {

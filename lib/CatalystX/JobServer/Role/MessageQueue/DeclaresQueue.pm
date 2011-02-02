@@ -16,12 +16,14 @@ has queue_name => (
     }
 );
 
+# FIXME - Should auto-build from _queue as above
 has queue_type => (
     is => 'ro',
     isa => enum([qw/ topic direct fanout /]),
     default => 'topic',
 );
 
+# FIXME - Should auto-build from _queue as above
 has queue_durable => (
     is => 'ro',
     isa => Bool,

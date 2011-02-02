@@ -58,9 +58,11 @@ has workers => (
             map {
                 $self->_new_worker(
                     %{ $self->worker_config },
+                    arc => $self->_channel->{arc},
+                    _queue => $self->_queue,
                     job_finished_cb => sub {
                         $self->job_finished(shift, shift);
-                        $self->_try_to_run_queued_jobs;
+#                        $self->_try_to_run_queued_jobs;
                     },
                     update_status_cb => sub {
                         my ($job, $data) = @_;
@@ -75,17 +77,17 @@ has workers => (
     traits => ['Serialize'],
 );
 
-has waiting => (
-    is => 'ro',
-    isa => ArrayRef,
-    default => sub { [] },
-    traits => ['Array'],
-    handles => {
-        _has_jobs_waiting => 'count',
-        _push_waiting_job => 'push',
-        _get_waiting_job => 'shift',
-    },
-);
+#has waiting => (
+#    is => 'ro',
+#    isa => ArrayRef,
+#    default => sub { [] },
+#    traits => ['Array'],
+#    handles => {
+#        _has_jobs_waiting => 'count',
+#        _push_waiting_job => 'push',
+#        _get_waiting_job => 'shift',
+#    },
+#);
 
 method BUILD {
     $self->workers;
@@ -95,7 +97,7 @@ after add_worker => sub {
     my $self = shift;
     my $worker = $self->_new_worker;
     push(@{ $self->workers }, $worker);
-    $self->_try_to_run_queued_jobs;
+#    $self->_try_to_run_queued_jobs;
 };
 
 method can_remove_worker {
@@ -118,26 +120,26 @@ method _first_free_worker {
     (grep { $_->free } @{ $self->workers })[0];
 }
 
-sub _do_run_job {
-    my ($self, $job) = @_;
-    $self->_push_waiting_job($job);
-    $self->_try_to_run_queued_jobs;
-}
+#sub _do_run_job {
+#    my ($self, $job) = @_;
+#    $self->_push_waiting_job($job);
+#    $self->_try_to_run_queued_jobs;
+#}
 
-method _try_to_run_queued_jobs {
-    while ($self->_has_jobs_waiting) {
-        my $worker = $self->_first_free_worker;
-        unless ($worker) {
-            $self->cancel_messagequeue_consumer;
-            last;
-        }
-        my $job = $self->_get_waiting_job;
-        my $running_job = Running->new(job => $job);
-        $self->_add_running($running_job);
-        $worker->run_job($job);
-    }
-    $self->build_messagequeue_consumer if (!$self->_has_jobs_waiting && $self->_first_free_worker);
-}
+#method _try_to_run_queued_jobs {
+#    while ($self->_has_jobs_waiting) {
+#        my $worker = $self->_first_free_worker;
+#        unless ($worker) {
+#            $self->cancel_messagequeue_consumer;
+#            last;
+#        }
+#        my $job = $self->_get_waiting_job;
+#        my $running_job = Running->new(job => $job);
+#        $self->_add_running($running_job);
+#        $worker->run_job($job);
+#    }
+#    $self->build_messagequeue_consumer if (!$self->_has_jobs_waiting && $self->_first_free_worker);
+#}
 
 has suspend => (
     is => 'rw',
@@ -145,22 +147,22 @@ has suspend => (
     default => 0,
     trigger => sub {
         my ($self, $val, $old) = @_;
-        $self->cancel_messagequeue_consumer if $val;
+#        $self->cancel_messagequeue_consumer if $val;
     },
     traits => ['Serialize'],
 );
 
 with 'CatalystX::JobServer::JobRunner';
 
-after _remove_running => sub {
-    shift->_try_to_run_queued_jobs;
-};
+#after _remove_running => sub {
+#    shift->_try_to_run_queued_jobs;
+#};
 
-around build_messagequeue_consumer => sub {
-    my ($orig, $self, @args) = @_;
-    return if $self->suspend;
-    $self->$orig(@args);
-};
+#around build_messagequeue_consumer => sub {
+#    my ($orig, $self, @args) = @_;
+#    return if $self->suspend;
+#    $self->$orig(@args);
+#};
 
 __PACKAGE__->meta->make_immutable;
 1;

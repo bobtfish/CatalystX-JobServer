@@ -27,4 +27,8 @@ __PACKAGE__->meta->make_immutable;
 
 CatalystX::JobServer::ComponentMap - Adaptor model class for CatalystX::JobServer::ComponentMap
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

@@ -174,4 +174,8 @@ CatalystX::JobServer::JobRunner::Forked - Class providing persistent perl job wo
 Maintains a pool of L<CatalystX::JobServer::JobRunner::Forked::Worker> processes, which are sent
 jobs and which return results.
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

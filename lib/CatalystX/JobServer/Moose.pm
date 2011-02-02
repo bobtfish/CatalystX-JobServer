@@ -46,4 +46,8 @@ CatalystX::JobServer::Moose - Moose, the way I like it.
 Applies L<Moose>, L<Moose::Util::TypeConstraints>, L<Method::Signatures::Simple>, L<Moose::Autobox>
 and L<namespace::autoclean> to the class using it.
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

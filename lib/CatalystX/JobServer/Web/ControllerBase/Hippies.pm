@@ -139,3 +139,9 @@ sub hippie_error {
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
+=cut

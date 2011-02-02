@@ -119,4 +119,8 @@ Creates the specified channels, exchanges, queues and bindings in RabbitMQ.
 Messages recieved in each channel wil be dispatched into other services within the application
 and results are published to RabbitMQ.
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

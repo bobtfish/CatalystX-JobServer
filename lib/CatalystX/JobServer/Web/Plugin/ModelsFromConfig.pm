@@ -65,4 +65,8 @@ are injected as instances of L<CatalystX::JobServer::Web::ModelBase::Adaptor> us
 
 L<CatalystX::JobServer::Web::ModelBase::Adaptor>, L<CatalystX::InjectComponent>.
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

@@ -108,4 +108,8 @@ Any process with one (or more) of these classes will close and re-open the outpu
 on SIGHUP. This can (and should) be used after log rotation to force the process to re-open it's log
 files (and close those which have been rotated away).
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

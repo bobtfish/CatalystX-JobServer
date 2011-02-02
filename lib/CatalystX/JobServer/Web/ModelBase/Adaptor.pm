@@ -78,4 +78,8 @@ Also passes a couple of custom parameters which can be used by components which 
 
 =back
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

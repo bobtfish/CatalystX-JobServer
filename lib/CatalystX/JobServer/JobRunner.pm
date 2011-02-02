@@ -75,5 +75,9 @@ CatalystX::JobServer::JobRunner - Role providing some of the implementation for 
 
 See L<CatalystX::JobServer::JobRunner::Forked>.
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut
 

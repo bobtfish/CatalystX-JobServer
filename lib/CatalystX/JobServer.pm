@@ -63,6 +63,10 @@ L<CatalystX::JobServer::Web>, L<Net::RabbitFoot>, L<http://www.slideshare.net/bo
 
 Tomas Doran
 
+=head1 COPYRIGHT
+
+Copyright (c) 2010, The above named author(s) and contributors.
+
 =head1 LICENSE
 
 This library is free software. You can redistribute it and/or modify

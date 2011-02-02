@@ -41,3 +41,10 @@ has finish_time => (
 method finalize { }
 
 __PACKAGE__->meta->make_immutable;
+
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
+=cut
+

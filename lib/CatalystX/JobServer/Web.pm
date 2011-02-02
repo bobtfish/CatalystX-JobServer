@@ -110,14 +110,9 @@ to load all the application components.
 
 L<CatalystX::JobServer>.
 
-=head1 AUTHOR
+=head1 AUTHORS, COPYRIGHT, LICENSE
 
-Tomas Doran
-
-=head1 LICENSE
-
-This library is free software. You can redistribute it and/or modify
-it under the same terms as Perl itself.
+See L<CatalystX::JobServer>.
 
 =cut
 

@@ -19,3 +19,10 @@ after process => sub {
 
 __PACKAGE__->meta->make_immutable( inline_constructor => 0 );
 1;
+
+
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
+=cut

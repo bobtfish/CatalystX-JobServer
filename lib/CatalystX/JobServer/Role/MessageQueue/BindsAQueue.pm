@@ -22,3 +22,31 @@ before BUILD => sub {
 };
 
 1;
+
+=head1 NAME
+
+CatalystX::JobServer::Role::MessageQueue::BindsAQueue
+
+=head1 DESCRIPTION
+
+Role for components which cause a single queue to be bound to a single exchange with a single routing key.
+
+=head1 ATTRIBUTES
+
+=head2 bind_routing_key
+
+Defaults to C<#>, which is a wildcard
+
+=head1 CONSUMES
+
+=over
+
+=item L<CatalystX::JobServer::Role::MessageQueue::BindsQueues>
+
+=item L<CatalystX::JobServer::Role::MessageQueue::DeclaresExchange>
+
+=item L<CatalystX::JobServer::Role::MessageQueue::DeclaresQueue>
+
+=back
+
+=cut

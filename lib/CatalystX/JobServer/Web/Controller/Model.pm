@@ -116,4 +116,8 @@ __PACKAGE__->meta->make_immutable;
 
 CatalystX::JobServer::Web::Controller::Model - Provides introspection of the models registered in the application via HTTP.
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

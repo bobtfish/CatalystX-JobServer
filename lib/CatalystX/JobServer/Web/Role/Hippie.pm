@@ -58,3 +58,9 @@ sub hippie : Chained('find') PathPart('_hippie') Args() {
 
 
 1;
+
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
+=cut

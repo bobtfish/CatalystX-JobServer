@@ -80,4 +80,8 @@ CatalystX::JobServer::ComponentMap - Map to the configured components in the app
        }
     }
 
+=head1 AUTHORS, COPYRIGHT, LICENSE
+
+See L<CatalystX::JobServer>.
+
 =cut

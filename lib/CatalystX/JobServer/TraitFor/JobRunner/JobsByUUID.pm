@@ -9,12 +9,26 @@ has jobs_by_uuid => (
     is => 'ro',
     traits    => ['Hash', 'Serialize'],
     isa => HashRef[Running],
-    default => sub { {} },
+    lazy => 1,
+    builder => '_build_jobs_by_uuid',
     handles   => {
         _add_job_by_uuid => 'set',
         _remove_job_by_uuid => 'delete',
     },
+    clearer => '_clear_jobs_by_uuid',
 );
+
+before pack => sub {
+    shift->_clear_jobs_by_uuid;
+};
+method _build_jobs_by_uuid {
+    return {
+        map { $_->working_on->job->{uuid}, $_->working_on }
+        grep { $_->working_on->job->{uuid} }
+        grep { $_->working_on }
+        $self->workers->flatten
+    };
+}
 
 has _jobs_by_uuid_handles => (
     is => 'ro',

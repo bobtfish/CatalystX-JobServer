@@ -8,7 +8,7 @@ use namespace::autoclean;
 has jobs_by_uuid => (
     is => 'ro',
     traits    => ['Hash', 'Serialize'],
-    isa => HashRef[Running],
+    isa => HashRef,
     lazy => 1,
     builder => '_build_jobs_by_uuid',
     handles   => {
@@ -23,8 +23,8 @@ before pack => sub {
 };
 method _build_jobs_by_uuid {
     return {
-        map { $_->working_on->job->{uuid}, $_->working_on }
-        grep { $_->working_on->job->{uuid} }
+        map { $_->working_on->{uuid}, $_->working_on }
+        grep { $_->working_on->{uuid} }
         grep { $_->working_on }
         $self->workers->flatten
     };
@@ -39,14 +39,14 @@ has _jobs_by_uuid_handles => (
 after _add_running => sub {
     my ($self, $job) = @_;
     if (exists $job->job->{uuid}) {
-        $self->_add_job_by_uuid($job->job->{uuid}, $job);
+        $self->_add_job_by_uuid($job->{uuid}, $job);
     }
 };
 
 after _remove_running => sub {
     my ($self, $job) = @_;
     if (exists $job->job->{uuid}) {
-        $self->_remove_job_by_uuid($job->job->{uuid}, $job);
+        $self->_remove_job_by_uuid($job->{uuid}, $job);
     }
 };
 

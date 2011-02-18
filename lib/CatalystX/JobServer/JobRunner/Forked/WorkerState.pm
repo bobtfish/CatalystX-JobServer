@@ -87,6 +87,8 @@ method _build_get_new_job_timer {
                 }
             },
             on_failure => sub {
+                # FIXME - If the channel goes down, then this is what gets fired and we're totally totally fucked.
+                #         We need to either manage a channel per worker (bad?) or be able to tell our parent we crapped out..
                 Carp::cluck("Getting message from " . $self->queue_name . " unexpectedly failed: " . Data::Dumper::Dumper(shift()));
             },
         );

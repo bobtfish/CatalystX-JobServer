@@ -39,14 +39,14 @@ has _jobs_by_uuid_handles => (
 after _add_running => sub {
     my ($self, $job) = @_;
     if (exists $job->job->{uuid}) {
-        $self->_add_job_by_uuid($job->{uuid}, $job);
+        $self->_add_job_by_uuid($job->job->{uuid}, $job);
     }
 };
 
 after _remove_running => sub {
     my ($self, $job) = @_;
     if (exists $job->job->{uuid}) {
-        $self->_remove_job_by_uuid($job->{uuid}, $job);
+        $self->_remove_job_by_uuid($job->job->{uuid}, $job);
     }
 };
 
